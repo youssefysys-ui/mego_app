@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../core/res/app_colors.dart';
 import '../controllers/history_trip_controller.dart';
 
 class TripHistoryCard extends StatelessWidget {
@@ -13,13 +14,17 @@ class TripHistoryCard extends StatelessWidget {
   Color _getStatusColor() {
     switch (trip.status) {
       case 'completed':
-        return Colors.green;
+        return AppColors.successColor;
+      case 'arrived':
+        return AppColors.successColor;
+        case 'Arrived':
+        return AppColors.successColor;
       case 'cancelled':
-        return Colors.red;
+        return AppColors.failColor;
       case 'in_progress':
-        return Colors.orange;
+        return AppColors.warningColor;
       default:
-        return Colors.blue;
+        return AppColors.primaryColor;
     }
   }
 
@@ -56,12 +61,12 @@ class TripHistoryCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: AppColors.primaryColor.withOpacity(0.08),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -70,12 +75,14 @@ class TripHistoryCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
+          splashColor: AppColors.primaryColor.withOpacity(0.05),
+          highlightColor: AppColors.primaryColor.withOpacity(0.02),
           onTap: () {
             // Navigate to trip details
             // Get.to(() => TripDetailsView(tripId: trip.id));
           },
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -86,18 +93,26 @@ class TripHistoryCard extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: 16,
-                            color: Colors.grey[600],
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.backgroundColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.calendar_today_rounded,
+                              size: 16,
+                              color: AppColors.primaryColor,
+                            ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               _formatDate(trip.createdAt),
                               style: TextStyle(
+                                fontFamily: 'Roboto',
                                 fontSize: 13,
-                                color: Colors.grey[600],
+                                color: AppColors.txtColor,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -107,28 +122,34 @@ class TripHistoryCard extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 14,
+                        vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor().withOpacity(0.1),
+                        color: _getStatusColor().withOpacity(0.12),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _getStatusColor().withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             _getStatusIcon(),
-                            size: 14,
+                            size: 15,
                             color: _getStatusColor(),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 5),
                           Text(
                             trip.status.capitalizeFirst ?? trip.status,
                             style: TextStyle(
+                              fontFamily: 'Roboto',
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: _getStatusColor(),
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ],
@@ -136,102 +157,153 @@ class TripHistoryCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
                 // Route Information
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Route Line
-                    Column(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                        ),
-                        Container(
-                          width: 2,
-                          height: 40,
-                          color: Colors.grey[300],
-                        ),
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Locations
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Route Line
+                      Column(
                         children: [
-                          // Pickup Location
-                          Text(
-                            'Pickup Location',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.successColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.cardColor,
+                                width: 2.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.successColor.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            trip.rideRequest != null
-                                ? '${trip.rideRequest!.pickupLat.toStringAsFixed(4)}, ${trip.rideRequest!.pickupLng.toStringAsFixed(4)}'
-                                : 'N/A',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Dropoff Location
-                          Text(
-                            'Dropoff Location',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                          Container(
+                            width: 2.5,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.successColor.withOpacity(0.5),
+                                  AppColors.failColor.withOpacity(0.5),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            trip.rideRequest != null
-                                ? '${trip.rideRequest!.dropoffLat.toStringAsFixed(4)}, ${trip.rideRequest!.dropoffLng.toStringAsFixed(4)}'
-                                : 'N/A',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.cardColor,
+                                width: 2.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryColor.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                ),
+                              ],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 14),
+
+                      // Locations
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Pickup Location
+                            Text(
+                              'Pickup Location',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 11,
+                                color: AppColors.socialMediaText,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              trip.rideRequest?.pickupPlace ?? 'N/A',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.txtColor,
+                                letterSpacing: 0.2,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 18),
+
+                            // Dropoff Location
+                            Text(
+                              'Dropoff Location',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 11,
+                                color: AppColors.socialMediaText,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              trip.rideRequest?.dropoffPlace ?? 'N/A',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.txtColor,
+                                letterSpacing: 0.2,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
-                const SizedBox(height: 16),
-                Divider(color: Colors.grey[200], height: 1),
-                const SizedBox(height: 12),
+                const SizedBox(height: 18),
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        AppColors.primaryColor.withOpacity(0.1),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
 
                 // Footer: Price and Duration
                 Row(
@@ -239,43 +311,79 @@ class TripHistoryCard extends StatelessWidget {
                   children: [
                     // Duration
                     if (trip.estimatedTime != null)
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 18,
-                            color: Colors.grey[600],
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            trip.formattedTime ?? 'N/A',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 18,
+                              color: AppColors.iconColor,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Text(
+                              trip.formattedTime ?? 'N/A',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.txtColor,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
                     // Price
                     if (trip.estimatedPrice != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 16,
+                          vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          trip.formattedPrice ?? 'N/A',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.priceColor,
+                              AppColors.priceColor.withOpacity(0.85),
+                            ],
                           ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.priceColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.payments_rounded,
+                              size: 18,
+                              color: AppColors.whiteColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              trip.formattedPrice ?? 'N/A',
+                              style: const TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.whiteColor,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                   ],

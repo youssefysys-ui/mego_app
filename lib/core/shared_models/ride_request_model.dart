@@ -3,8 +3,10 @@ class RideRequestModel {
   final String userId;
   final double pickupLat;
   final double pickupLng;
+  final String? pickupPlace;
   final double dropoffLat;
   final double dropoffLng;
+  final String? dropoffPlace;
   final double estimatedPrice;
   final int estimatedTime;
   final String status;
@@ -15,8 +17,10 @@ class RideRequestModel {
     required this.userId,
     required this.pickupLat,
     required this.pickupLng,
+    this.pickupPlace,
     required this.dropoffLat,
     required this.dropoffLng,
+    this.dropoffPlace,
     required this.estimatedPrice,
     required this.estimatedTime,
     required this.status,
@@ -29,8 +33,10 @@ class RideRequestModel {
       userId: json['user_id']?.toString() ?? '',
       pickupLat: _parseDouble(json['pickup_lat']),
       pickupLng: _parseDouble(json['pickup_lng']),
+      pickupPlace: json['pickup_place']?.toString(),
       dropoffLat: _parseDouble(json['dropoff_lat']),
       dropoffLng: _parseDouble(json['dropoff_lng']),
+      dropoffPlace: json['dropoff_place']?.toString(),
       estimatedPrice: _parseDouble(json['estimated_price']),
       estimatedTime: _parseInt(json['estimated_time']),
       status: json['status']?.toString() ?? 'pending',
@@ -46,8 +52,10 @@ class RideRequestModel {
       'user_id': userId,
       'pickup_lat': pickupLat,
       'pickup_lng': pickupLng,
+      'pickup_place': pickupPlace,
       'dropoff_lat': dropoffLat,
       'dropoff_lng': dropoffLng,
+      'dropoff_place': dropoffPlace,
       'estimated_price': estimatedPrice,
       'estimated_time': estimatedTime,
       'status': status,
@@ -60,8 +68,10 @@ class RideRequestModel {
     String? userId,
     double? pickupLat,
     double? pickupLng,
+    String? pickupPlace,
     double? dropoffLat,
     double? dropoffLng,
+    String? dropoffPlace,
     double? estimatedPrice,
     int? estimatedTime,
     String? status,
@@ -72,8 +82,10 @@ class RideRequestModel {
       userId: userId ?? this.userId,
       pickupLat: pickupLat ?? this.pickupLat,
       pickupLng: pickupLng ?? this.pickupLng,
+      pickupPlace: pickupPlace ?? this.pickupPlace,
       dropoffLat: dropoffLat ?? this.dropoffLat,
       dropoffLng: dropoffLng ?? this.dropoffLng,
+      dropoffPlace: dropoffPlace ?? this.dropoffPlace,
       estimatedPrice: estimatedPrice ?? this.estimatedPrice,
       estimatedTime: estimatedTime ?? this.estimatedTime,
       status: status ?? this.status,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_images.dart';
+import '../../../features/coupons/coupons_view.dart';
+import '../../../features/customer_support/customer_chat.dart';
 import '../../../features/history_trips/views/history_view.dart';
 import '../../res/app_colors.dart';
 
@@ -71,7 +73,9 @@ class SideBarMenu extends StatelessWidget {
                 _buildMenuItem(
                   icon: AppImages.customerSupportIcon,
                   title: 'Customer Support',
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(CustomerChatView());
+                  },
                   iconSize: 22,
                 ),
                 const Divider(color: Colors.white24, height: 1),
@@ -92,7 +96,9 @@ class SideBarMenu extends StatelessWidget {
                 _buildMenuItem(
                   icon: AppImages.couponsIcon,
                   title: 'Coupons',
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(CouponsView());
+                  },
                   iconSize: 22,
                 ),
                 const Divider(color: Colors.white24, height: 1),
