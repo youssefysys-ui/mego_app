@@ -3,10 +3,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../core/res/app_colors.dart';
 import '../../../core/res/app_images.dart';
+import '../../search_places & calculation/controllers/search_places_controller.dart';
 import '../../search_places & calculation/search_places_view.dart';
 
 class BottomCardWidget extends StatefulWidget {
-  const BottomCardWidget({super.key});
+  final List<String>lastUserDropOffLocation;
+  const BottomCardWidget({super.key,required this.lastUserDropOffLocation});
 
   @override
   State<BottomCardWidget> createState() => _BottomCardWidgetState();
@@ -136,15 +138,17 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                     _buildLocationItem(
                       Icons.location_on,
                       selectedService == 'Ride'
-                          ? 'Coffee house'
-                          : 'Pizza Restaurant',
+                          ? widget.lastUserDropOffLocation[0]:"",
+                      // 'Coffee house'
+                      //     : 'Pizza Restaurant',
                     ),
                     const SizedBox(height: 12),
                     _buildLocationItem(
                       Icons.location_on,
                       selectedService == 'Ride'
-                          ? 'Inn Hotel'
-                          : 'Burger Place',
+                          ? widget.lastUserDropOffLocation[1]:"",
+                      //'Inn Hotel'
+                        //  : 'Burger Place',
                     ),
 
                     const SizedBox(height: 20),
@@ -237,27 +241,54 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
 
   // Build location item
   Widget _buildLocationItem(IconData icon, String title) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            title,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 16,
+    return InkWell(
+      onTap: () async {
+        if (title.isNotEmpty) {
+          // Navigate to SearchPlacesView
+          Get.to(
+            () => const SearchPlacesView(),
+            transition: Transition.leftToRightWithFade,
+            duration: const Duration(milliseconds: 500),
+          );
+          
+          // Get the controller and search for the location to get full details
+          final controller = Get.find<SearchPlacesController>();
+          controller.toController.text = title;
+          controller.isFromField = false;
+          
+          // Search for the place to get coordinates
+          await controller.searchPlaces(title);
+          
+          controller.update();
+        }
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor,
+              shape: BoxShape.circle,
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: Colors.grey[400],
+          ),
+        ],
+      ),
     );
   }
 

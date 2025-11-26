@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_images.dart';
+import '../../../features/about_us/about_us_view.dart';
 import '../../../features/coupons/coupons_view.dart';
 import '../../../features/customer_support/customer_chat.dart';
 import '../../../features/history_trips/views/history_view.dart';
+import '../../../features/wallet/wallet_view.dart';
 import '../../res/app_colors.dart';
 
 class SideBarMenu extends StatelessWidget {
@@ -82,7 +84,9 @@ class SideBarMenu extends StatelessWidget {
                 _buildMenuItem(
                   icon: AppImages.aboutIcon,
                   title: 'About Us',
-                  onTap: () {},
+                  onTap: () {
+                    Get.to( AboutUsView());
+                  },
                   iconSize: 22,
                 ),
                 const Divider(color: Colors.white24, height: 1),
@@ -105,7 +109,9 @@ class SideBarMenu extends StatelessWidget {
                 _buildMenuItem(
                   icon: AppImages.walletIcon,
                   title: 'Wallet',
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(WalletView());
+                  },
                   iconSize: 22,
                 ),
                 const Divider(color: Colors.white24, height: 1),

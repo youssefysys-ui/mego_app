@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
 import '../../core/res/app_colors.dart';
 import '../../core/shared_models/coupon_model.dart';
 import 'coupons_controller.dart';
@@ -13,46 +14,8 @@ class CouponsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.appBarColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.whiteColor),
-          onPressed: () => Get.back(),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.whiteColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.confirmation_number_rounded,
-                color: AppColors.whiteColor,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'My Coupons',
-              style: TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.whiteColor,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, color: AppColors.whiteColor),
-            onPressed: controller.refreshCoupons,
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(height: 91,isBack: true),
+
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(
@@ -570,26 +533,16 @@ class CouponsView extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               AppColors.buttonColor,
-                              AppColors.priceColor,
+                              AppColors.buttonColor,
                             ],
                           ),
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.buttonColor.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
+
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.redeem_rounded,
-                              size: 16,
-                              color: AppColors.primaryColor,
-                            ),
+
                             const SizedBox(width: 6),
                             Text(
                               'Use Now',

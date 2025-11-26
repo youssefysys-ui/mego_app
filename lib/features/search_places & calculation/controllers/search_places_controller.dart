@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:mego_app/core/shared_models/coupon_model.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/est_services_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/place_model.dart';
@@ -24,6 +25,9 @@ class SearchPlacesController extends GetxController {
 
   PlaceModel? selectedFromPlace;
   PlaceModel? selectedToPlace;
+  
+  // Applied coupon for discount
+  Coupon? appliedCoupon;
 
   static const String apiKey = "AIzaSyDYKfcCmSzheZh7zGH7wsPiIM58-R6y020";
 
@@ -31,33 +35,33 @@ class SearchPlacesController extends GetxController {
   void onInit() {
     super.onInit();
     estServicesController = Get.put(EstServicesController());
-    loginUser();
+    //loginUser();
 
     // Get current location on init
     getCurrentLocation();
   }
 
-  Future<void> loginUser() async {
-    final supabase = Supabase.instance.client;
-
-    try {
-      final response = await supabase.auth.signInWithPassword(
-        email: 'test@gmail.com',
-        password: '123456',
-      );
-
-      if (response.user != null) {
-        print('✅ Login successful!');
-        print('User ID: ${response.user!.id}');
-      } else {
-        print('⚠️ Login failed — check credentials.');
-      }
-    } on AuthException catch (error) {
-      print('❌ Auth error: ${error.message}');
-    } catch (error) {
-      print('⚠️ Unexpected error: $error');
-    }
-  }
+  // Future<void> loginUser() async {
+  //   final supabase = Supabase.instance.client;
+  //
+  //   try {
+  //     final response = await supabase.auth.signInWithPassword(
+  //       email: 'test@gmail.com',
+  //       password: '123456',
+  //     );
+  //
+  //     if (response.user != null) {
+  //       print('✅ Login successful!');
+  //       print('User ID: ${response.user!.id}');
+  //     } else {
+  //       print('⚠️ Login failed — check credentials.');
+  //     }
+  //   } on AuthException catch (error) {
+  //     print('❌ Auth error: ${error.message}');
+  //   } catch (error) {
+  //     print('⚠️ Unexpected error: $error');
+  //   }
+  // }
 
   // Get user's current location
   Future<void> getCurrentLocation() async {
@@ -358,5 +362,19 @@ class SearchPlacesController extends GetxController {
   // Refresh current location
   Future<void> refreshCurrentLocation() async {
     await getCurrentLocation();
+  }
+
+  /// Apply coupon to ride request
+  void applyCoupon(Coupon coupon) {
+    appliedCoupon = coupon;
+    update();
+    print('✅ Coupon applied: ${coupon.type}');
+  }
+
+  /// Remove applied coupon
+  void removeCoupon() {
+    appliedCoupon = null;
+    update();
+    print('🗑️ Coupon removed');
   }
 }

@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
+import '../../coupons/coupons_controller.dart';
+import '../../coupons/coupons_view.dart';
+import '../../search_places & calculation/controllers/search_places_controller.dart';
 import '../confirm_ride_controller.dart';
 
 class BottomNav extends StatelessWidget {
@@ -310,6 +313,147 @@ class BottomNav extends StatelessWidget {
             )),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCouponSection() {
+    // Try to get SearchPlacesController if exists
+    final searchController = Get.isRegistered<SearchPlacesController>() 
+        ? Get.find<SearchPlacesController>() 
+        : null;
+    
+    if (searchController == null) {
+      return const SizedBox.shrink();
+    }
+    
+    return GetBuilder<SearchPlacesController>(
+      builder: (_) {
+        final appliedCoupon = searchController.appliedCoupon;
+        
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: appliedCoupon != null 
+                  ? AppColors.successColor.withValues(alpha: 0.1)
+                  : AppColors.cardColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: appliedCoupon != null 
+                    ? AppColors.successColor.withValues(alpha: 0.3)
+                    : Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            child: appliedCoupon != null 
+                ? _buildAppliedCouponWidget(appliedCoupon, searchController)
+                : _buildApplyCouponButton(),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAppliedCouponWidget(coupon, SearchPlacesController searchController) {
+    // Get CouponsController to access helper methods
+    final couponsController = Get.isRegistered<CouponsController>()
+        ? Get.find<CouponsController>()
+        : null;
+    
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.successColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.confirmation_number_rounded,
+                color: AppColors.successColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    couponsController?.getCouponTypeName(coupon.type) ?? 'Coupon Applied',
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.successColor,
+                    ),
+                  ),
+                  Text(
+                    couponsController?.getCouponDescription(coupon.type) ?? 'Discount applied',
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () => searchController.removeCoupon(),
+              icon: Icon(
+                Icons.close,
+                color: Colors.grey[600],
+                size: 20,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildApplyCouponButton() {
+    return InkWell(
+      onTap: () async {
+        final couponsController = Get.put(CouponsController());
+        await Get.to(() => const CouponsView());
+        
+        // Check if coupon was selected
+        if (couponsController.selectedCoupon.value != null) {
+          final searchController = Get.find<SearchPlacesController>();
+          searchController.applyCoupon(couponsController.selectedCoupon.value!);
+        }
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.local_offer_outlined,
+            color: AppColors.primaryColor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Apply Coupon',
+            style: TextStyle(
+              fontFamily: 'Roboto',
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.arrow_forward_ios,
+            color: AppColors.primaryColor,
+            size: 14,
+          ),
+        ],
       ),
     );
   }

@@ -7,8 +7,6 @@ import 'package:mego_app/core/language/local_controller.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'core/services/ride_restoration_service.dart';
-import 'core/services/passenger_ride_restoration_service.dart';
 import 'features/splash/splash_view.dart';
 
 void main() async {

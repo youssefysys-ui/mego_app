@@ -9,6 +9,9 @@ class CouponsController extends GetxController {
 
   // Toggle for test mode
   final RxBool useTestData = false.obs;
+  
+  // Selected coupon for applying to ride
+  final Rx<Coupon?> selectedCoupon = Rx<Coupon?>(null);
 
   late final SupabaseClient _supabase;
   String? get currentUserId => _supabase.auth.currentUser?.id;
@@ -21,10 +24,14 @@ class CouponsController extends GetxController {
   }
 
   /// Generate test data for development/testing
+  /// Generate test data for development/testing
   List<Coupon> _generateTestData() {
     final now = DateTime.now();
-    final userId = currentUserId ?? 'test-user-id';
-    
+    final userId = currentUserId ?? '00000000-0000-0000-0000-000000000000';
+
+    // للكوبونات المتاحة للجميع، استخدم نفس user_id أو UUID ثابت
+    final systemUserId = currentUserId ?? '00000000-0000-0000-0000-000000000000';
+
     return [
       // Client-specific coupons (for current user only)
       Coupon(
@@ -57,11 +64,11 @@ class CouponsController extends GetxController {
         createdAt: now.subtract(const Duration(days: 10)),
         updatedAt: now.subtract(const Duration(days: 10)),
       ),
-      
+
       // All-users coupons (available to everyone)
       Coupon(
         id: 'test-4',
-        userId: 'system',
+        userId: systemUserId,  // ✅ UUID صحيح
         type: 'FREE_RIDE',
         couponFor: 'all',
         active: true,
@@ -71,7 +78,7 @@ class CouponsController extends GetxController {
       ),
       Coupon(
         id: 'test-5',
-        userId: 'system',
+        userId: systemUserId,  // ✅ UUID صحيح
         type: 'FLAT_50',
         couponFor: 'all',
         active: true,
@@ -89,7 +96,7 @@ class CouponsController extends GetxController {
         createdAt: now.subtract(const Duration(days: 7)),
         updatedAt: now.subtract(const Duration(days: 7)),
       ),
-      
+
       // Expired coupons
       Coupon(
         id: 'test-7',
@@ -113,7 +120,7 @@ class CouponsController extends GetxController {
       ),
       Coupon(
         id: 'test-9',
-        userId: 'system',
+        userId: systemUserId,  // ✅ UUID صحيح
         type: 'DISCOUNT_10',
         couponFor: 'all',
         active: true,
@@ -126,36 +133,17 @@ class CouponsController extends GetxController {
 
   /// Load user coupons from Supabase or test data
   Future<void> loadCoupons() async {
-    // Use test data if enabled
-    if (useTestData.value) {
-      try {
-        isLoading.value = true;
-        errorMessage.value = '';
-
-        // Simulate network delay
-        await Future.delayed(const Duration(milliseconds: 800));
-
-        coupons.value = _generateTestData();
-
-        print('✅ Loaded ${coupons.length} test coupons');
-      } catch (e) {
-        errorMessage.value = 'Failed to load test coupons: $e';
-        print('Error loading test coupons: $e');
-      } finally {
-        isLoading.value = false;
-      }
-      return;
-    }
-
-    // Original Supabase logic
     if (currentUserId == null) {
       errorMessage.value = 'Please login to view your coupons';
+      print('⚠️ No current user ID found');
       return;
     }
 
     try {
       isLoading.value = true;
       errorMessage.value = '';
+
+      print('🔍 Fetching coupons for user: $currentUserId');
 
       // Fetch coupons where user_id = current user OR coupon_for = 'all'
       final response = await _supabase
@@ -164,13 +152,50 @@ class CouponsController extends GetxController {
           .or('user_id.eq.$currentUserId,coupon_for.eq.all')
           .order('created_at', ascending: false);
 
-      coupons.value = (response as List)
-          .map((json) => Coupon.fromJson(json))
+      print('📦 Raw response: $response');
+
+      if (response == null) {
+        print('⚠️ Received null response from Supabase');
+        coupons.value = [];
+        return;
+      }
+
+      final fetchedCoupons = (response as List)
+          .map((json) {
+        try {
+          return Coupon.fromJson(json);
+        } catch (e) {
+          print('❌ Error parsing coupon: $json');
+          print('Error details: $e');
+          return null;
+        }
+      })
+          .whereType<Coupon>()
           .toList();
 
-    } catch (e) {
+      // If no data in Supabase and test mode is enabled, use test data
+      if (fetchedCoupons.isEmpty && useTestData.value) {
+        print('⚠️ No coupons found in Supabase, using test data...');
+        coupons.value = _generateTestData();
+        print('✅ Loaded ${coupons.length} test coupons');
+      } else {
+        coupons.value = fetchedCoupons;
+        print('✅ Successfully loaded ${coupons.length} coupons from Supabase');
+      }
+
+    } catch (e, stackTrace) {
       errorMessage.value = 'Failed to load coupons: $e';
-      print('Error loading coupons: $e');
+      print('❌ Error loading coupons: $e');
+      print('Stack trace: $stackTrace');
+      
+      // If error occurs and test mode is enabled, fallback to test data
+      if (useTestData.value) {
+        print('⚠️ Error loading from Supabase, using test data as fallback...');
+        coupons.value = _generateTestData();
+        errorMessage.value = ''; // Clear error since we have fallback data
+      } else {
+        coupons.value = [];
+      }
     } finally {
       isLoading.value = false;
     }
@@ -191,6 +216,28 @@ class CouponsController extends GetxController {
     return coupons.where((coupon) => !coupon.active && !coupon.isExpired).toList();
   }
 
+  /// Select a coupon for applying to ride
+  void selectCoupon(Coupon coupon) {
+    if (coupon.isValid) {
+      selectedCoupon.value = coupon;
+      print('✅ Selected coupon: ${coupon.type}');
+      Get.back(); // Return to previous screen with selected coupon
+    } else {
+      Get.snackbar(
+        'Invalid Coupon',
+        'This coupon is expired or inactive',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      print('⚠️ Cannot select invalid coupon: ${coupon.type}');
+    }
+  }
+
+  /// Clear selected coupon
+  void clearSelectedCoupon() {
+    selectedCoupon.value = null;
+    print('🗑️ Cleared selected coupon');
+  }
+
   /// Deactivate a coupon
   Future<void> deactivateCoupon(String couponId) async {
     // Test mode simulation
@@ -202,17 +249,10 @@ class CouponsController extends GetxController {
         // Update local test data
         final index = coupons.indexWhere((c) => c.id == couponId);
         if (index != -1) {
-          final updatedCoupon = Coupon(
-            id: coupons[index].id,
-            userId: coupons[index].userId,
-            type: coupons[index].type,
-            couponFor: coupons[index].couponFor,
+          coupons[index] = coupons[index].copyWith(
             active: false,
-            validUntil: coupons[index].validUntil,
-            createdAt: coupons[index].createdAt,
             updatedAt: DateTime.now(),
           );
-          coupons[index] = updatedCoupon;
           coupons.refresh();
         }
 
@@ -235,10 +275,17 @@ class CouponsController extends GetxController {
 
     // Original Supabase logic
     try {
+      print('🔄 Deactivating coupon: $couponId');
+
       await _supabase
           .from('coupons')
-          .update({'active': false, 'updated_at': DateTime.now().toIso8601String()})
+          .update({
+        'active': false,
+        'updated_at': DateTime.now().toIso8601String()
+      })
           .eq('id', couponId);
+
+      print('✅ Coupon deactivated successfully');
 
       // Refresh coupons list
       await loadCoupons();
@@ -250,6 +297,7 @@ class CouponsController extends GetxController {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      print('❌ Error deactivating coupon: $e');
       Get.snackbar(
         'Error',
         'Failed to deactivate coupon: $e',
@@ -346,22 +394,20 @@ class CouponsController extends GetxController {
 
     try {
       isLoading.value = true;
-      
+
+      print('📝 Preparing test data for insertion...');
+
       final testData = _generateTestData();
-      
-      // Convert to JSON for insertion (without id, created_at, updated_at)
-      final dataToInsert = testData.map((coupon) {
-        return {
-          'user_id': coupon.userId,
-          'type': coupon.type,
-          'coupon_for': coupon.couponFor,
-          'valid_until': coupon.validUntil.toIso8601String(),
-          'active': coupon.active,
-        };
-      }).toList();
+
+      // Convert to JSON for insertion
+      final dataToInsert = testData.map((coupon) => coupon.toInsertJson()).toList();
+
+      print('💾 Inserting ${dataToInsert.length} coupons into database...');
 
       // Insert into Supabase
       await _supabase.from('coupons').insert(dataToInsert);
+
+      print('✅ Test data inserted successfully');
 
       Get.snackbar(
         'Success',
@@ -372,15 +418,16 @@ class CouponsController extends GetxController {
 
       // Reload coupons from database
       await loadCoupons();
-      
-    } catch (e) {
+
+    } catch (e, stackTrace) {
+      print('❌ Error inserting test data: $e');
+      print('Stack trace: $stackTrace');
       Get.snackbar(
         'Error',
         'Failed to insert test data: $e',
         snackPosition: SnackPosition.BOTTOM,
         duration: const Duration(seconds: 4),
       );
-      print('Error inserting test data: $e');
     } finally {
       isLoading.value = false;
     }

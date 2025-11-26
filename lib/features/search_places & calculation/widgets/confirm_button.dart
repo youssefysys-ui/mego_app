@@ -245,11 +245,14 @@ class ConfirmButton extends StatelessWidget {
 
       // Calculate estimated time and price using EstServicesController
       final estServicesController = Get.find<EstServicesController>();
-      final estimatedPrice = estServicesController.calculateEstimatedPrice(
+      
+      // Calculate price with discount if coupon is applied
+      final priceInfo = estServicesController.calculatePriceWithDiscount(
         controller.selectedFromPlace!.latitude,
         controller.selectedFromPlace!.longitude,
         controller.selectedToPlace!.latitude,
         controller.selectedToPlace!.longitude,
+        controller.appliedCoupon, // Pass applied coupon
       );
 
       final estimatedTime = estServicesController.calculateEstimatedTime(
@@ -269,8 +272,11 @@ class ConfirmButton extends StatelessWidget {
         placeFrom: controller.selectedFromPlace!.name,
         placeTo: controller.selectedToPlace!.name,
         est_time: estimatedTime,
-        est_price: estimatedPrice,
+        est_price: priceInfo['finalPrice']!, // Use final price after discount
         rideRequestId: null, // Will be created when user confirms in ConfirmRideView
+        couponId: controller.appliedCoupon?.id, // Pass coupon ID
+        originalPrice: priceInfo['originalPrice'], // Original price before discount
+        discountAmount: priceInfo['discount'], // Discount amount
       );
 
       // Navigate directly to confirm ride view 

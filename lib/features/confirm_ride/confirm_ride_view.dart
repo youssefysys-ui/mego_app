@@ -7,6 +7,7 @@ import 'package:mego_app/core/shared_models/user_ride_data.dart';
 import 'package:mego_app/features/confirm_ride/widgets/location_card.dart';
 import 'package:mego_app/features/confirm_ride/widgets/top_header.dart';
 import 'package:mego_app/features/confirm_ride/widgets/bottomNav.dart';
+import '../../core/shared_widgets/menu/side_bar_menu.dart';
 import 'confirm_ride_controller.dart';
 
 class ConfirmRideView extends StatefulWidget {
@@ -41,6 +42,7 @@ class _ConfirmRideViewState extends State<ConfirmRideView> {
         controller: controller,
         userLocationData: widget.userRideData,
       ),
+      drawer: const SideBarMenu(),
       appBar: AppBar(
         backgroundColor: AppColors.appBarColor,
         toolbarHeight: 1,

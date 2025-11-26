@@ -22,6 +22,7 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     controller = Get.find<HomeController>();
+    controller.getLastUserDropOffLocation();
   }
 
   @override
@@ -34,12 +35,21 @@ class _HomeViewState extends State<HomeView> {
         children: [
           // Google Map
           MapWidget(controller: controller),
-
           // Drawer menu icon
           DrawerMenuIcon(),
-
           // Bottom Container with ride options and search
-          BottomCardWidget(),
+          GetBuilder<HomeController>(
+            builder: (_) {
+              if(controller.lastDropOffLocations.isNotEmpty) {
+                return BottomCardWidget(lastUserDropOffLocation: controller.lastDropOffLocations,
+
+                );
+              }else{
+                return const SizedBox();
+              }
+
+            }
+          ),
         ],
       ),
     );

@@ -58,6 +58,11 @@ class CreateRideRequestController extends GetxController {
         'payment_method': paymentMethod,
         'status': RideRequestModel.statusPending,
         'created_at': DateTime.now().toIso8601String(),
+        // Coupon data
+       // 'coupon_id': userRideData.couponId,
+      //  'original_price': userRideData.originalPrice,
+       // 'discount_amount': userRideData.discountAmount,
+      //  'final_price': fareAmount, // Final price after discount
       };
 
       print('Creating ride request with data:');

@@ -10,6 +10,9 @@ class UserRideData {
   final double est_price;
   final String placeTo;
   final String? rideRequestId; // Optional, will be set after ride request creation
+  final String? couponId; // Coupon ID if applied
+  final double? originalPrice; // Price before discount
+  final double? discountAmount; // Discount amount
 
   UserRideData({
     required this.userId,
@@ -22,6 +25,9 @@ class UserRideData {
     required this.placeFrom,
     required this.placeTo,
     this.rideRequestId,
+    this.couponId,
+    this.originalPrice,
+    this.discountAmount,
   });
 
   // Factory constructor for creating from JSON

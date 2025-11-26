@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mego_app/core/loading/loading.dart';
-
+import 'package:mego_app/core/local_db/local_db.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../search_places & calculation/controllers/search_places_controller.dart';
 
 
@@ -74,4 +76,77 @@ class HomeController extends GetxController {
       update(); // Notify UI about finished loading
     }
   }
+
+  List<String> lastDropOffLocations = [];
+
+  Future<void> getLastUserDropOffLocation() async {
+    try {
+      // Get current user from local storage
+      final localDb = LocalStorageService(GetStorage());
+      final userModel = localDb.userModel;
+
+      if (userModel == null) {
+        print('❌ No user found in local storage');
+        return;
+      }
+
+      final currentUserId = userModel.id;
+      print('🔍 Fetching dropoff locations for user: $currentUserId');
+
+      // Get Supabase client
+      final supabase = Supabase.instance.client;
+
+      // Fetch rides for current user with ride_request relationship
+      // Note: The column name is 'ride_request_' not 'ride_request_id'
+      final ridesResponse = await supabase
+          .from('rides')
+          .select('''
+          id, 
+          ride_request_id, 
+          created_at,
+          ride_requests!ride_request_id(dropoff_place)
+        ''')
+          .eq('rider_id', currentUserId)
+          .not('ride_request_id', 'is', null)  // Only get rides with valid ride_request_
+          .order('created_at', ascending: false)
+          .limit(10);
+
+      print('📦 Fetched ${ridesResponse.length} rides from database');
+
+      // Clear the list before adding new data
+      lastDropOffLocations.clear();
+
+      // Extract dropoff places and remove duplicates
+      final Set<String> uniqueLocations = {};
+
+      for (var ride in ridesResponse) {
+        // Access the nested ride_requests data
+        // The relationship name in the response will be 'ride_requests'
+        final rideRequest = ride['ride_requests'];
+
+        if (rideRequest != null) {
+          final dropoffPlace = rideRequest['dropoff_place']?.toString().trim();
+          if (dropoffPlace != null && dropoffPlace.isNotEmpty) {
+            uniqueLocations.add(dropoffPlace);
+            print('  ✓ Found location: $dropoffPlace');
+          }
+        }
+      }
+
+      lastDropOffLocations = uniqueLocations.toList();
+
+      print('✅ Successfully fetched ${lastDropOffLocations.length} unique dropoff locations');
+      print('📍 Dropoff locations: $lastDropOffLocations');
+
+      update(); // Notify UI
+
+    } catch (e) {
+      print('❌ Error fetching dropoff locations: $e');
+      print('Error details: ${e.toString()}');
+      lastDropOffLocations = [];
+      update(); // Notify UI even on error
+    }
+  }
+
+
 }

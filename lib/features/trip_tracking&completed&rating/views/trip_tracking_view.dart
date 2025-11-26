@@ -8,6 +8,8 @@ import 'package:mego_app/features/trip_tracking&completed&rating/widgets/map_sec
 import 'package:mego_app/features/trip_tracking&completed&rating/widgets/trip_info_section.dart';
 import '../../../core/res/app_colors.dart';
 import '../../../core/shared_models/ride_model.dart';
+import '../../../core/shared_widgets/menu/drawer_menu_icon.dart';
+import '../../../core/shared_widgets/menu/side_bar_menu.dart';
 
 class TripTrackingView extends StatelessWidget {
   final UserRideData userRideData;
@@ -23,7 +25,7 @@ class TripTrackingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
+    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
     // Initialize controller with ride data
     Get.put(TripTrackingController(
@@ -34,38 +36,17 @@ class TripTrackingView extends StatelessWidget {
 
     return GetBuilder<TripTrackingController>(
       builder: (controller) => Scaffold(
+        key: scaffoldKey,
         backgroundColor: AppColors.backgroundColor,
+        drawer: const SideBarMenu(),
         appBar: CustomAppBar(height: 83),
         body: Stack(
           children: [
             // Full screen map
             MapSectionWidget(controller: controller),
 
-            // Top left menu button
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              left: 16,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.menu, color: Colors.white),
-                  onPressed: () {
-                    print("RIDE DATA: ${ride.toJson()}");
-                  },
-                  padding: const EdgeInsets.all(12),
-                ),
-              ),
-            ),
+            // Top left menu button with drIcon
+            const DrawerMenuIcon(),
 
             // Bottom trip info overlay
             Positioned(

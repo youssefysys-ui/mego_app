@@ -297,6 +297,12 @@ class TripTrackingController extends GetxController {
         stopTripSimulation();
         // Clear saved state when ride is completed
         clearRidingState();
+        
+        // Deactivate coupon if one was used
+        if (userRideData.couponId != null) {
+          deactivateUsedCoupon(userRideData.couponId!);
+        }
+        
         Future.delayed(const Duration(milliseconds: 500), () {
           //_showTripCompletedDialog();
           Get.to(TripCompletionView(
@@ -1252,6 +1258,38 @@ class TripTrackingController extends GetxController {
   void _startTripMovement() {
     if (!isTripSimulating) {
       startTripSimulation();
+    }
+  }
+
+  /// Deactivate coupon after ride completion
+  Future<void> deactivateUsedCoupon(String couponId) async {
+    try {
+      final supabase = Supabase.instance.client;
+      
+      print('🎫 Deactivating coupon: $couponId');
+      
+      await supabase
+          .from('coupons')
+          .update({
+            'active': false,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', couponId);
+      
+      print('✅ Coupon $couponId deactivated successfully');
+      
+      Get.snackbar(
+        'Coupon Used',
+        'Your coupon has been applied to this ride',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      
+    } catch (e) {
+      print('❌ Error deactivating coupon: $e');
+      // Don't show error to user - this is a background operation
     }
   }
 }
