@@ -12,9 +12,22 @@ import 'package:mego_app/features/auth/register/register_view.dart';
 import '../controllers/login_controller.dart';
 
 
-class LoginView extends GetView<LoginController> {
+class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+
+  LoginController ?controller ;
+
+  @override
+  void initState() {
+    controller = Get.put(LoginController());
+    super.initState();
+  }
   @override
 
   Widget build(BuildContext context) {
@@ -43,23 +56,23 @@ class LoginView extends GetView<LoginController> {
             SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.only(left:38.0,right:28),
-              child: CustomTextFormField(hint: 'Enter Your Phone Number'.tr, 
+              child: CustomTextFormField(hint: 'Enter Your Phone Number'.tr,
               prefixIcon:AppImages.phone,
-             // phoneIcon, 
-              
+             // phoneIcon,
+
               type: TextInputType.phone,
-              controller: controller.phoneController),
+              controller: controller!.phoneController),
             )
-              
+
               , SizedBox(height: 20),
 
               Obx(() => CustomButton(
-                text: controller.isLoading.value ? 'Signing in...' : 'Sign in', 
+                text: controller!.isLoading.value ? 'Signing in...' : 'Sign in',
                 onPressed: () {
                  // controller.sendOTP(phoneNumber: controller.phoneController.text, context: context);
-                  if (!controller.isLoading.value) {
+                  if (!controller!.isLoading.value) {
 
-                    controller.login(context);
+                    controller!.login(context);
                   }
                 },
               )),
@@ -80,7 +93,9 @@ class LoginView extends GetView<LoginController> {
                    text: 'Continue with Google',
                    iconPath: AppImages.google,
                   // googleIcon,
-                   onPressed: () {},
+                   onPressed: () {
+                     controller!.googleLogin(context);
+                   },
                  ),
                ),
 
@@ -139,13 +154,13 @@ class LoginView extends GetView<LoginController> {
 
                   ],
                 ),
-              
+
               ],
             ),
           ),
-        
 
-          
+
+
         ],),
       )
     );

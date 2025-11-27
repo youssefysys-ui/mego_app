@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mego_app/core/loading/loading.dart';
 import 'package:mego_app/core/res/app_images.dart';
+import 'package:mego_app/core/utils/app_message.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../features/about_us/about_us_view.dart';
+import '../../../features/auth/login/views/login_view.dart';
 import '../../../features/coupons/coupons_view.dart';
 import '../../../features/customer_support/customer_chat.dart';
 import '../../../features/history_trips/views/history_view.dart';
 import '../../../features/wallet/wallet_view.dart';
+import '../../local_db/local_db.dart';
 import '../../res/app_colors.dart';
 
 class SideBarMenu extends StatelessWidget {
@@ -89,13 +95,7 @@ class SideBarMenu extends StatelessWidget {
                   },
                   iconSize: 22,
                 ),
-                const Divider(color: Colors.white24, height: 1),
-                _buildMenuItem(
-                  icon:AppImages.settingsIcon,
-                  title: 'Settings',
-                  onTap: () {},
-                  iconSize: 22,
-                ),
+               
                 const Divider(color: Colors.white24, height: 1),
                 _buildMenuItem(
                   icon: AppImages.couponsIcon,
@@ -118,7 +118,9 @@ class SideBarMenu extends StatelessWidget {
                 _buildMenuItem(
                   icon:AppImages.logoutIcon,
                   title: 'LogOut',
-                  onTap: () {},
+                  onTap: () {
+                    _handleLogout(context);
+                  },
                   iconSize: 22,
                 ),
               ],
@@ -169,6 +171,107 @@ class SideBarMenu extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Handle logout process
+  Future<void> _handleLogout(BuildContext context) async {
+    // Show confirmation dialog
+    final shouldLogout = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Logout',
+          style: TextStyle(
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          'Are you sure you want to logout?',
+          style: TextStyle(
+            fontFamily: 'Roboto',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontFamily: 'Roboto',
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Logout',
+              style: TextStyle(
+                color: Colors.white,
+                fontFamily: 'Roboto',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // If user confirmed logout
+    if (shouldLogout == true) {
+      try {
+        // Show loading indicator
+
+        LoadingWidget();
+
+
+        // Sign out from Supabase
+        await Supabase.instance.client.auth.signOut();
+        print('✅ User signed out from Supabase');
+
+        // Clear local storage data
+        final localStorage = GetIt.instance<LocalStorageService>();
+        await localStorage.deleteAuthToken();
+        await localStorage.deleteUserEmail();
+        await localStorage.deleteUserName();
+        await localStorage.deleteUserModel();
+        print('✅ Local storage cleared');
+
+        // Close loading dialog
+        Get.back();
+
+        // Navigate to login screen and clear all previous routes
+        Get.offAll(
+          () => LoginView(),
+          transition: Transition.fadeIn,
+          duration: const Duration(milliseconds: 500),
+        );
+        // Show success message
+        appMessageSuccess(text: 'Logged out successfully', context: context);
+
+
+
+      } catch (e) {
+        // Close loading dialog if open
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+
+        print('❌ Error during logout: $e');
+        // Show error message
+        appMessageFail(text: 'Failed to logout: ${e.toString()}', context: context);
+
+
+      }
+    }
   }
 
   Widget _buildMenuItem({

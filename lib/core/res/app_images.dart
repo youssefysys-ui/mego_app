@@ -45,7 +45,8 @@ class AppImages {
   static const String aboutIcon = 'assets/images/about.svg';
   static const String couponsIcon = 'assets/images/coupons.svg';
   static const String customerSupportIcon = 'assets/images/customer_support.svg';
-  static const String splashVideo = 'assets/images/splash_video.mp4';
+  static const String splashVideo = 'assets/images/v1.mp4';
+      //'assets/images/splash_video.mp4';
   static const String nameIcon = 'assets/images/name.svg';
   static const String emailIcon = 'assets/images/mail.svg';
 

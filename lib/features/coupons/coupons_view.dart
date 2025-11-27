@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
+import '../../core/loading/loading.dart';
 import '../../core/res/app_colors.dart';
 import '../../core/shared_models/coupon_model.dart';
 import 'coupons_controller.dart';
@@ -18,26 +19,8 @@ class CouponsView extends StatelessWidget {
 
       body: Obx(() {
         if (controller.isLoading.value) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(
-                  color: AppColors.primaryColor,
-                  strokeWidth: 3,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Loading your coupons...',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 16,
-                    color: AppColors.socialMediaText,
-                  ),
-                ),
-              ],
-            ),
-          );
+          return    LoadingWidget();
+
         }
 
         if (controller.errorMessage.value.isNotEmpty) {
@@ -524,36 +507,41 @@ class CouponsView extends StatelessWidget {
 
                     // Use Button or Deactivate
                     if (isActive)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.buttonColor,
-                              AppColors.buttonColor,
+                      InkWell(
+                        onTap:(){
+                          controller.selectCoupon(coupon);
+
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.buttonColor,
+                                AppColors.buttonColor,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+
+                              const SizedBox(width: 6),
+                              Text(
+                                'Use Now',
+                                style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(20),
-
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-
-                            const SizedBox(width: 6),
-                            Text(
-                              'Use Now',
-                              style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primaryColor,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                   ],

@@ -16,7 +16,7 @@ class MyBinding implements Bindings {
     
     // Controllers
 
-    Get.lazyPut<LoginController>(() => LoginController(Get.find<LoginRepository>()));
+   // Get.lazyPut<LoginController>(() => LoginController(Get.find<LoginRepository>()));
     //Get.lazyPut<RegisterController(() => LoginController(Get.find<LoginRepository>()));
     Get.lazyPut<VerifyOtpController>(() => VerifyOtpController());
     Get.lazyPut<HomeController>(() => HomeController());

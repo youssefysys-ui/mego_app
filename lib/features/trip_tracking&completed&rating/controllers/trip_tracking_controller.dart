@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/shared_models/models.dart';
@@ -298,10 +299,8 @@ class TripTrackingController extends GetxController {
         // Clear saved state when ride is completed
         clearRidingState();
         
-        // Deactivate coupon if one was used
-        if (userRideData.couponId != null) {
-          deactivateUsedCoupon(userRideData.couponId!);
-        }
+        // Remove coupon from local storage and deactivate in Supabase
+        removeCouponAfterRideEnd();
         
         Future.delayed(const Duration(milliseconds: 500), () {
           //_showTripCompletedDialog();
@@ -536,10 +535,8 @@ class TripTrackingController extends GetxController {
     if (progress > 0 && _isCountingDown) {
       final totalDistance = _calculateTripDistance();
       final remainingDistance = totalDistance * (1 - progress);
-
       final estimatedRemainingMinutes = (remainingDistance / 1000 * 2).ceil();
       _remainingSeconds = estimatedRemainingMinutes * 60;
-
       if (_remainingSeconds < 30) {
         _remainingSeconds = 30;
       }
@@ -941,6 +938,9 @@ class TripTrackingController extends GetxController {
 
     // Update ride status to completed
     await _updateRideStatus(RideModel.statusCompleted);
+    
+    // Remove coupon after ride completion
+    removeCouponAfterRideEnd();
 
     // Show completion dialog
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -949,7 +949,6 @@ class TripTrackingController extends GetxController {
       Get.to(TripCompletionView(
         ride:currentRide!,
         fareAmount: userRideData.est_price,
-
       ));
     });
 
@@ -1261,13 +1260,30 @@ class TripTrackingController extends GetxController {
     }
   }
 
-  /// Deactivate coupon after ride completion
-  Future<void> deactivateUsedCoupon(String couponId) async {
+  /// Remove coupon from local storage and deactivate in Supabase after ride ends
+  Future<void> removeCouponAfterRideEnd() async {
     try {
+      // Get localStorage instance
+      final localStorage = GetIt.instance<LocalStorageService>();
+      
+      // Get coupon JSON from local storage
+      final couponJson = localStorage.selectedCoupon;
+      
+      // Check if a coupon exists in local storage
+      if (couponJson == null) {
+        print('ℹ️ No coupon found in local storage');
+        return;
+      }
+
+      // Extract coupon ID from JSON
+      final couponId = couponJson['id'] as String?;
+      if (couponId == null) {
+        print('⚠️ Coupon ID not found in saved coupon data');
+        return;
+      }
+      print('🎫 Removing coupon after ride end: $couponId');
+      // 1. Deactivate in Supabase first
       final supabase = Supabase.instance.client;
-      
-      print('🎫 Deactivating coupon: $couponId');
-      
       await supabase
           .from('coupons')
           .update({
@@ -1275,20 +1291,16 @@ class TripTrackingController extends GetxController {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', couponId);
-      
-      print('✅ Coupon $couponId deactivated successfully');
-      
-      Get.snackbar(
-        'Coupon Used',
-        'Your coupon has been applied to this ride',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-      );
-      
+      print('✅ Coupon deactivated in Supabase');
+
+      // 2. Remove from local storage
+      await localStorage.deleteSelectedCoupon();
+      print('✅ Coupon removed from local storage');
+
+      print('🎉 Coupon successfully removed after ride completion');
+
     } catch (e) {
-      print('❌ Error deactivating coupon: $e');
+      print('❌ Error removing coupon after ride end: $e');
       // Don't show error to user - this is a background operation
     }
   }

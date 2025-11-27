@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
+import '../../../core/loading/loading.dart';
 import '../controllers/history_trip_controller.dart';
 import '../widgets/epmty_history.dart';
 import '../widgets/trip_card_widget.dart';
@@ -33,9 +34,10 @@ class _HistoryViewState extends State<HistoryView> {
       body: GetBuilder<HistoryTripController>(
         builder: (_) {
           if (controller.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+
+            return LoadingWidget();
+
+
           }
 
           if (controller.error.isNotEmpty) {

@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/shared_models/coupon_model.dart';
+import '../../core/local_db/local_db.dart';
 
 class CouponsController extends GetxController {
   final RxList<Coupon> coupons = <Coupon>[].obs;
@@ -14,18 +17,37 @@ class CouponsController extends GetxController {
   final Rx<Coupon?> selectedCoupon = Rx<Coupon?>(null);
 
   late final SupabaseClient _supabase;
+  late final LocalStorageService _localStorage;
   String? get currentUserId => _supabase.auth.currentUser?.id;
 
   @override
   void onInit() {
     super.onInit();
     _supabase = Supabase.instance.client;
+    _localStorage = GetIt.instance<LocalStorageService>();
+    _loadSelectedCouponFromStorage();
     loadCoupons();
+  }
+
+  /// Load previously selected coupon from local storage
+  void _loadSelectedCouponFromStorage() {
+    try {
+      final savedCoupon = _localStorage.selectedCoupon;
+      if (savedCoupon != null) {
+        selectedCoupon.value = Coupon.fromJson(savedCoupon);
+        print('✅ Loaded selected coupon from storage: ${selectedCoupon.value?.type}');
+      }
+    } catch (e) {
+      print('⚠️ Error loading selected coupon from storage: $e');
+      // Clear invalid data
+      _localStorage.deleteSelectedCoupon();
+    }
   }
 
   /// Generate test data for development/testing
   /// Generate test data for development/testing
   List<Coupon> _generateTestData() {
+    print("🛠️ Generating test coupon data...");
     final now = DateTime.now();
     final userId = currentUserId ?? '00000000-0000-0000-0000-000000000000';
 
@@ -217,25 +239,44 @@ class CouponsController extends GetxController {
   }
 
   /// Select a coupon for applying to ride
-  void selectCoupon(Coupon coupon) {
-    if (coupon.isValid) {
+  Future<void> selectCoupon(Coupon coupon) async {
+    if (!coupon.isValid) {
+      appMessageFail(text: 'This coupon is expired or inactive', context: Get.context!);
+      print('⚠️ Cannot select invalid coupon: ${coupon.type}');
+      return;
+    }
+
+    try {
+      // Delete old coupon selection from local storage if exists
+      if (selectedCoupon.value != null) {
+        await _localStorage.deleteSelectedCoupon();
+        print('🗑️ Deleted old coupon from storage: ${selectedCoupon.value?.type}');
+      }
+
+      // Save new selected coupon to local storage
+      await _localStorage.saveSelectedCoupon(coupon.toJson());
+      print('💾 Saved new coupon to storage: ${coupon.toJson()}');
+      // Update the selected coupon in memory
       selectedCoupon.value = coupon;
       print('✅ Selected coupon: ${coupon.type}');
-      Get.back(); // Return to previous screen with selected coupon
-    } else {
-      Get.snackbar(
-        'Invalid Coupon',
-        'This coupon is expired or inactive',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      print('⚠️ Cannot select invalid coupon: ${coupon.type}');
+      appMessageSuccess(text: 'Coupon is activated now in your next trip', context: Get.context!);
+
+     // Get.back(); // Return to previous screen with selected coupon
+    } catch (e) {
+      print('❌ Error saving selected coupon: $e');
+      appMessageFail(text: 'Failed to save coupon selection', context: Get.context!);
     }
   }
 
   /// Clear selected coupon
-  void clearSelectedCoupon() {
-    selectedCoupon.value = null;
-    print('🗑️ Cleared selected coupon');
+  Future<void> clearSelectedCoupon() async {
+    try {
+      await _localStorage.deleteSelectedCoupon();
+      selectedCoupon.value = null;
+      print('🗑️ Cleared selected coupon from memory and storage');
+    } catch (e) {
+      print('❌ Error clearing selected coupon: $e');
+    }
   }
 
   /// Deactivate a coupon

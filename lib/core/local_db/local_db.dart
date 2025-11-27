@@ -38,6 +38,13 @@ class LocalStorageService {
   static const _selectedCategoryNameEnKey = 'selected_category_name_en';
   static const _selectedCategoryTypeKey = 'selected_category_type';
   static const _selectedCategoryImageKey = 'selected_category_image';
+  
+  // Coupon storage key
+  static const _selectedCouponKey = 'selected_coupon';
+  
+  // Splash video tracking keys
+  static const _splashVideoShownKey = 'splash_video_shown';
+  static const _splashVideoTimestampKey = 'splash_video_timestamp';
 
 //read
   String? get authToken => read<String>(_authTokenKey);
@@ -65,6 +72,13 @@ class LocalStorageService {
   String? get selectedCategoryNameEn => read<String>(_selectedCategoryNameEnKey);
   String? get selectedCategoryType => read<String>(_selectedCategoryTypeKey);
   String? get selectedCategoryImage => read<String>(_selectedCategoryImageKey);
+  
+  // Coupon read method
+  Map<String, dynamic>? get selectedCoupon => read<Map<String, dynamic>>(_selectedCouponKey);
+  
+  // Splash video read methods
+  bool? get splashVideoShown => read<bool>(_splashVideoShownKey);
+  String? get splashVideoTimestamp => read<String>(_splashVideoTimestampKey);
 
 //write
   Future<void> saveAuthToken(String token) async => await write(_authTokenKey, token);
@@ -95,6 +109,20 @@ class LocalStorageService {
   Future<void> saveSelectedCategoryNameEn(String categoryNameEn) async => await write(_selectedCategoryNameEnKey, categoryNameEn);
   Future<void> saveSelectedCategoryType(String categoryType) async => await write(_selectedCategoryTypeKey, categoryType);
   Future<void> saveSelectedCategoryImage(String categoryImage) async => await write(_selectedCategoryImageKey, categoryImage);
+  
+  // Coupon write method
+  Future<void> saveSelectedCoupon(Map<String, dynamic> coupon) async => await write(_selectedCouponKey, coupon);
+  
+  // Splash video write methods
+  Future<void> saveSplashVideoShown(bool shown) async => await write(_splashVideoShownKey, shown);
+  Future<void> saveSplashVideoTimestamp(String timestamp) async => await write(_splashVideoTimestampKey, timestamp);
+  
+  /// Mark splash video as shown with current timestamp
+  Future<void> markSplashVideoAsShown() async {
+    await saveSplashVideoShown(true);
+    await saveSplashVideoTimestamp(DateTime.now().toIso8601String());
+    print('✅ Splash video marked as shown at ${DateTime.now()}');
+  }
   
   /// Save complete location data in one call
   Future<void> saveLocationData({
@@ -149,7 +177,21 @@ class LocalStorageService {
   Future<void> deleteSelectedCategoryName() async => await delete(_selectedCategoryNameKey);
   Future<void> deleteSelectedCategoryNameEn() async => await delete(_selectedCategoryNameEnKey);
   Future<void> deleteSelectedCategoryType() async => await delete(_selectedCategoryTypeKey);
+  
+  // Coupon delete method
+  Future<void> deleteSelectedCoupon() async => await delete(_selectedCouponKey);
   Future<void> deleteSelectedCategoryImage() async => await delete(_selectedCategoryImageKey);
+  
+  // Splash video delete methods
+  Future<void> deleteSplashVideoShown() async => await delete(_splashVideoShownKey);
+  Future<void> deleteSplashVideoTimestamp() async => await delete(_splashVideoTimestampKey);
+  
+  /// Clear splash video data
+  Future<void> clearSplashVideoData() async {
+    await deleteSplashVideoShown();
+    await deleteSplashVideoTimestamp();
+    print('🗑️ Splash video data cleared');
+  }
   
   /// Delete all location data
   Future<void> deleteAllLocationData() async {
@@ -228,6 +270,38 @@ class LocalStorageService {
     
     final double c = 2 * asin(sqrt(a));
     return earthRadius * c;
+  }
+  
+  /// Check if splash video should be shown (returns true if video should play)
+  /// Video plays if: never shown before OR last shown more than 5 days ago
+  bool shouldShowSplashVideo() {
+    final shown = this.splashVideoShown;
+    final timestamp = this.splashVideoTimestamp;
+    
+    // If never shown before, show the video
+    if (shown == null || !shown || timestamp == null) {
+      print('🎬 Splash video should show: Never shown before');
+      return true;
+    }
+    
+    try {
+      final lastShownDate = DateTime.parse(timestamp);
+      final daysSinceShown = DateTime.now().difference(lastShownDate).inDays;
+      
+      // If more than 5 days, clear old data and show video again
+      if (daysSinceShown >= 5) {
+        print('🎬 Splash video should show: Last shown $daysSinceShown days ago');
+        this.clearSplashVideoData(); // Auto-remove after 5 days
+        return true;
+      }
+      
+      print('⏭️ Skip splash video: Last shown $daysSinceShown days ago');
+      return false;
+    } catch (e) {
+      print('⚠️ Error parsing splash video timestamp: $e');
+      // If error parsing, show video to be safe
+      return true;
+    }
   }
 
 }

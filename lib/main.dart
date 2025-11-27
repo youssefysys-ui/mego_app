@@ -7,6 +7,7 @@ import 'package:mego_app/core/language/local_controller.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'features/splash/splash_router.dart';
 import 'features/splash/splash_view.dart';
 
 void main() async {
@@ -182,7 +183,7 @@ class MyApp extends StatelessWidget {
       locale: lang,
       translations: MyLocal(),
       title: 'MEGO',
-      home: SplashView(),
+      home: const SplashRouter(),
       //const LoginView(),
       theme: ThemeData(
         primaryColor: AppColors.primaryColor,

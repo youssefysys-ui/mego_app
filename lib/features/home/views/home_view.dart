@@ -21,7 +21,8 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    controller = Get.find<HomeController>();
+    controller =Get.put(HomeController());
+        //Get.find<HomeController>();
     controller.getLastUserDropOffLocation();
   }
 

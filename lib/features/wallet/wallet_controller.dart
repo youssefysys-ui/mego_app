@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:mego_app/core/res/app_strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'wallet_model.dart';
 
@@ -246,8 +247,8 @@ class WalletController extends GetxController {
 
   /// Get formatted balance
   String get formattedBalance {
-    if (wallet.value == null) return '0.00 EUR';
-    return '${wallet.value!.total.toStringAsFixed(2)} EUR';
+    if (wallet.value == null) return '0.00 '+currency;
+    return '${wallet.value!.total.toStringAsFixed(2)} '+currency;
   }
 
   /// Check if user has sufficient balance

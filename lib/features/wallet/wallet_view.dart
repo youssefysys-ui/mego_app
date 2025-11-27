@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_colors.dart';
+import 'package:mego_app/core/res/app_strings.dart';
 import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
+import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import 'wallet_controller.dart';
 
 class WalletView extends StatelessWidget {
@@ -16,26 +18,9 @@ class WalletView extends StatelessWidget {
       appBar: CustomAppBar(height: 80, isBack: true),
       body: Obx(() {
         if (controller.isLoading.value && controller.wallet.value == null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(
-                  color: AppColors.primaryColor,
-                  strokeWidth: 3,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Loading your wallet...',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 16,
-                    color: AppColors.socialMediaText,
-                  ),
-                ),
-              ],
-            ),
-          );
+
+          return LoadingWidget();
+
         }
 
         if (controller.errorMessage.value.isNotEmpty && controller.wallet.value == null) {
@@ -108,7 +93,7 @@ class WalletView extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Transactions Section
-                _buildTransactionsSection(controller),
+              //  _buildTransactionsSection(controller),
 
                 const SizedBox(height: 20),
               ],
@@ -237,17 +222,7 @@ class WalletView extends StatelessWidget {
               onTap: () => _showAddMoneyDialog(context, controller),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildActionButton(
-              icon: Icons.history,
-              label: 'History',
-              color: AppColors.primaryColor,
-              onTap: () {
-                // Scroll to transactions
-              },
-            ),
-          ),
+
         ],
       ),
     );
@@ -265,7 +240,7 @@ class WalletView extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.cardColor,
+          color: AppColors.buttonColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: color.withValues(alpha: 0.3),
@@ -282,15 +257,15 @@ class WalletView extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: AppColors.appBarColor, size: 22,),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontFamily: 'Roboto',
-                fontSize: 15,
+                fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: color,
+                color: AppColors.primaryColor,
               ),
             ),
           ],
@@ -453,7 +428,7 @@ class WalletView extends StatelessWidget {
           const SizedBox(width: 8),
           
           Text(
-            '$sign${transaction.amount.toStringAsFixed(2)} EUR',
+            '$sign${transaction.amount.toStringAsFixed(2)} '+currency,
             style: TextStyle(
               fontFamily: 'Montserrat',
               fontSize: 16,
@@ -530,7 +505,7 @@ class WalletView extends StatelessWidget {
                 controller: amountController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Amount (EUR)',
+                  labelText: 'Amount '+currency,
                   prefixIcon: Icon(Icons.euro, color: AppColors.primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

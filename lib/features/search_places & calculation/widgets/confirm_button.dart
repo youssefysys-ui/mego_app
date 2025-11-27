@@ -9,6 +9,8 @@ import 'package:mego_app/features/confirm_ride/confirm_ride_view.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/est_services_controller.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/search_places_controller.dart';
 
+import 'coupon_discount_widget.dart';
+
 class ConfirmButton extends StatelessWidget {
   final SearchPlacesController controller;
   const ConfirmButton({super.key,required this.controller});
@@ -170,7 +172,37 @@ class ConfirmButton extends StatelessWidget {
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+                      
+                      // Coupon Discount Widget (only show if coupon is applied)
+                      if (controller.appliedCoupon != null) ...[
+                        GetBuilder<SearchPlacesController>(
+                          builder: (_) {
+                            if (controller.appliedCoupon != null &&
+                                controller.selectedFromPlace != null &&
+                                controller.selectedToPlace != null) {
+                              // Calculate price with discount
+                              final estServicesController = Get.find<EstServicesController>();
+                              final priceInfo = estServicesController.calculatePriceWithDiscount(
+                                controller.selectedFromPlace!.latitude,
+                                controller.selectedFromPlace!.longitude,
+                                controller.selectedToPlace!.latitude,
+                                controller.selectedToPlace!.longitude,
+                                controller.appliedCoupon,
+                              );
+                              
+                              return CouponDiscountWidget(
+                                originalPrice: priceInfo['originalPrice']!,
+                                discount: priceInfo['discount']!,
+                                finalPrice: priceInfo['finalPrice']!,
+                                couponType: controller.appliedCoupon!.type,
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ] else
+                        const SizedBox(height: 4),
                       
                       // Confirm Button
                       Container(

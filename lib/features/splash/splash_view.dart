@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/features/auth/login/views/login_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
@@ -20,14 +22,16 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   bool _isVideoInitialized = false;
+  late LocalStorageService _localStorage;
 
   @override
   void initState() {
     super.initState();
+    _localStorage = GetIt.instance<LocalStorageService>();
     _initializeVideo();
     _initializeFadeAnimation();
 
-    // Navigate after 4.3 seconds
+    // Navigate after 3.2 seconds
     Timer(const Duration(milliseconds: 3200), () {
       _navigateToNextScreen();
     });
@@ -57,7 +61,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
       });
 
       // Set playback speed to slow motion (0.5 = half speed, 0.75 = 3/4 speed)
-      _videoController.setPlaybackSpeed(0.73);
+      _videoController.setPlaybackSpeed(0.68);
 
       // Play the video
       _videoController.play();
@@ -68,29 +72,26 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   }
 
   void _navigateToNextScreen() async {
+    // Mark splash video as shown with current timestamp
+    await _localStorage.markSplashVideoAsShown();
+    
     // Start fade out animation
     await _fadeController.forward();
 
-    // Get.offAll(
-    //   LoginView(),
-    //   transition: Transition.leftToRightWithFade,
-    //   duration: const Duration(milliseconds: 2800),
-    // );
-
-    //Check if user is authenticated
+    // Check if user is authenticated
     final session = Supabase.instance.client.auth.currentSession;
 
     if (session != null) {
       // User is logged in, go to home with fade transition
       Get.offAll(
-            () => const HomeView(),
+        () => const HomeView(),
         transition: Transition.downToUp,
         duration: const Duration(milliseconds: 500),
       );
     } else {
       // User is not logged in, go to login with fade transition
       Get.offAll(
-       LoginView(),
+        LoginView(),
         transition: Transition.fadeIn,
         duration: const Duration(milliseconds: 500),
       );

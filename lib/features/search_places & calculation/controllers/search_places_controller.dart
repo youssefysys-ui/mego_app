@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/shared_models/coupon_model.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/est_services_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,6 +13,8 @@ import '../models/place_model.dart';
 class SearchPlacesController extends GetxController {
 
   late EstServicesController estServicesController;
+  late LocalStorageService _localStorage;
+  
   final TextEditingController fromController = TextEditingController();
   final TextEditingController toController = TextEditingController();
 
@@ -35,35 +39,39 @@ class SearchPlacesController extends GetxController {
   void onInit() {
     super.onInit();
     estServicesController = Get.put(EstServicesController());
-    //loginUser();
-
+    _localStorage = GetIt.instance<LocalStorageService>();
+    
+    // Load selected coupon from local storage
+    _loadSelectedCoupon();
+    
     // Get current location on init
     getCurrentLocation();
   }
 
-  // Future<void> loginUser() async {
-  //   final supabase = Supabase.instance.client;
-  //
-  //   try {
-  //     final response = await supabase.auth.signInWithPassword(
-  //       email: 'test@gmail.com',
-  //       password: '123456',
-  //     );
-  //
-  //     if (response.user != null) {
-  //       print('✅ Login successful!');
-  //       print('User ID: ${response.user!.id}');
-  //     } else {
-  //       print('⚠️ Login failed — check credentials.');
-  //     }
-  //   } on AuthException catch (error) {
-  //     print('❌ Auth error: ${error.message}');
-  //   } catch (error) {
-  //     print('⚠️ Unexpected error: $error');
-  //   }
-  // }
+  /// Load selected coupon from local storage
+  void _loadSelectedCoupon() {
+    try {
+      final savedCoupon = _localStorage.selectedCoupon;
+      if (savedCoupon != null) {
+        final coupon = Coupon.fromJson(savedCoupon);
+        // Check if coupon is still valid
+        if (coupon.isValid) {
+          appliedCoupon = coupon;
+          print('✅ Loaded valid coupon from storage: ${coupon.type}');
+          update();
+        } else {
+          // Remove invalid coupon from storage
+          _localStorage.deleteSelectedCoupon();
+          print('⚠️ Removed invalid coupon from storage');
+        }
+      }
+    } catch (e) {
+      print('❌ Error loading coupon from storage: $e');
+      _localStorage.deleteSelectedCoupon();
+    }
+  }
 
-  // Get user's current location
+
   Future<void> getCurrentLocation() async {
     isLoadingLocation = true;
     fromController.text = 'Getting your location...';
