@@ -1,32 +1,32 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/auth/verify_otp/verify_otp_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/local_db/local_db.dart';
 import '../repo/login_repo.dart';
 
 class LoginController extends GetxController {
   // Dependencies
   //final LoginRepository _loginRepository;
-  
+
   // Text controllers
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final loginFormKey = GlobalKey<FormState>();
-  
+
   // Reactive variables
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final SupabaseClient supabase = Supabase.instance.client;
-  
+
   // Constructor with dependency injection
   //LoginController(this._loginRepository);
-  
+
   @override
   void onClose() {
     phoneController.dispose();
@@ -41,9 +41,9 @@ class LoginController extends GetxController {
     try {
       isLoading.value = true;
       errorMessage.value = '';
-      
+
       print("📱 Sending OTP to: $phoneNumber");
-      
+
       await supabase.auth.signInWithOtp(
         phone: phoneNumber,
         shouldCreateUser: true,
@@ -55,7 +55,7 @@ class LoginController extends GetxController {
           context: context,
         );
       }
-      
+
       Get.to(() => VerifyOtpView(phoneNumber: phoneNumber));
       return true;
     } on AuthException catch (e) {
@@ -86,209 +86,185 @@ class LoginController extends GetxController {
       appMessageFail(text: 'Please enter your phone number', context: context);
       return;
     }
-    
+
     if (phoneController.text.trim().length < 7) {
       appMessageFail(text: 'Please enter a valid phone number', context: context);
       return;
     }
-    
+
     await sendOTP(phoneNumber: phoneController.text.trim(), context: context);
+  }
+
+  /// Ensure a row exists in 'users' table for the authenticated user.
+  /// Returns true if the user already existed, false if inserted as new.
+  Future<bool> _ensureUserRecord({
+    required User user,
+    String? displayName,
+    String? photoUrl,
+  }) async {
+
+    print("USER==="+user.toString());
+    try {
+      print('\n🗄️ STEP DB-1: Checking users table for existing record');
+      final existing = await supabase
+          .from('users')
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
+
+      print("EX=="+existing.toString());
+      if (existing != null) {
+        print('✅ STEP DB-2: Existing user found in users table');
+        print('   🆔 id: ${existing['id']}');
+        print('   👤 name: ${existing['name']}');
+        print('   📧 email: ${existing['email']}');
+        print('   📱 phone: ${existing['phone']}');
+        print('   🏷️ user_type: ${existing['user_type']}');
+        print('   🖼️ profile: ${existing['profile']}');
+        return true; // existing user
+      }
+
+      print('🆕 STEP DB-3: No user row found. Inserting new user row');
+      print("photoURL=="+photoUrl.toString());
+      print("photoURL22222=="+user.userMetadata.toString());
+      final insertPayload = {
+        'id': user.id,
+        'name': displayName ?? user.userMetadata?['name'] ?? user.email ?? 'MEGO User',
+        'email': user.email,
+        'phone':'909',
+        //user.phone,
+        'user_type': 'rider', // default
+        'profile': photoUrl ?? user.userMetadata?['avatar_url'] ?? '',
+        // created_at uses default now() on server
+      };
+
+      final inserted = await supabase
+          .from('users')
+          .insert(insertPayload)
+          .select()
+          .maybeSingle();
+      print('✅ STEP DB-4: User row inserted successfully');
+      print('   🆔 id: ${inserted?['id']}');
+      print('   👤 name: ${inserted?['name']}');
+      print('   📧 email: ${inserted?['email']}');
+      print('   📱 phone: ${inserted?['phone']}');
+      print('   🏷️ user_type: ${inserted?['user_type']}');
+      print('   🖼️ profile: ${inserted?['profile']}');
+
+      return false; // new user inserted
+    } catch (e, st) {
+      print('❌ STEP DB-ERR: Failed ensuring user record: $e');
+      print(st);
+      // If DB check fails, treat as new to avoid unintended navigation
+      return false;
+    }
   }
 
   /// Google Sign-In function with Supabase integration
   Future<void> googleLogin(BuildContext context) async {
     try {
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("🚀 STEP 1: Starting Google Sign-In Process");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      
       isLoading.value = true;
       errorMessage.value = '';
-      print("✅ STEP 1.1: Loading state set to true");
-      print("✅ STEP 1.2: Error message cleared");
 
-      // Initialize Google Sign-In with Web Client ID
-      print("\n📱 STEP 2: Initializing Google Sign-In");
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
         serverClientId:
+        '851699318144-qj34crl5g2avebai2mu1p5r3k33hm1eu.apps.googleusercontent.com',
+        clientId:
         '851699318144-k0tr7281tkbcsj4u7vbleo3obna75sfu.apps.googleusercontent.com',
-        //'851699318144-nhok4jk0b1rjc7vf1re1vjleuok5e7dh.apps.googleusercontent.com',
       );
-      print("✅ STEP 2.1: Google Sign-In instance created");
-      print("   📋 Scopes: email, profile");
-      print("   🔑 Server Client ID: 851699318144-k0tr7281tkbcsj4u7vbleo3obna75sfu.apps.googleusercontent.com");
 
-      // Sign out first to ensure fresh login
-      print("\n🔄 STEP 3: Clearing any existing Google session");
-      await googleSignIn.signOut();
-      print("✅ STEP 3.1: Successfully signed out from previous session");
+      await googleSignIn.signOut(); // force fresh login
 
-      // Trigger Google Sign-In
-      print("\n🔐 STEP 4: Triggering Google Sign-In UI");
-      print("⏳ Waiting for user to select Google account...");
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      print("G==="+googleUser.toString());
       if (googleUser == null) {
-        print("\n❌ STEP 4.1: User cancelled Google Sign-In");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        if (context.mounted) {
-          appMessageFail(
-            text: 'Google Sign-In cancelled',
-            context: context,
-          );
-        }
+        appMessageFail(text: 'Google Sign-In cancelled', context: context);
         return;
       }
 
-      print("\n✅ STEP 4.2: User selected Google account");
-      print("   👤 Display Name: ${googleUser.displayName}");
-      print("   📧 Email: ${googleUser.email}");
-      print("   🆔 Google User ID: ${googleUser.id}");
-      print("   📸 Photo URL: ${googleUser.photoUrl ?? 'No photo'}");
+      final GoogleSignInAuthentication googleAuth =
+      await googleUser.authentication;
 
-      // Get authentication tokens
-      print("\n🔑 STEP 5: Requesting Google authentication tokens");
-      print("⏳ Getting authentication details from Google...");
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      print("✅ STEP 5.1: Google authentication object received");
-      
       final String? accessToken = googleAuth.accessToken;
       final String? idToken = googleAuth.idToken;
 
-      print("\n🔍 STEP 6: Validating received tokens");
-      print("   Access Token: ${accessToken != null ? '✅ Present (${accessToken.length} chars)' : '❌ Missing'}");
-      print("   ID Token: ${idToken != null ? '✅ Present (${idToken.length} chars)' : '❌ Missing'}");
-
       if (accessToken == null || idToken == null) {
-        print("\n❌ STEP 6.1: Failed to obtain required tokens");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        if (context.mounted) {
-          appMessageFail(
-            text: 'Failed to authenticate with Google',
-            context: context,
-          );
-        }
+        appMessageFail(
+          text: 'Failed to authenticate with Google',
+          context: context,
+        );
         return;
       }
 
-      print("✅ STEP 6.2: All required tokens validated successfully");
-      print("   🎟️ Access Token (first 30 chars): ${accessToken.substring(0, 30)}...");
-      print("   🎟️ ID Token (first 30 chars): ${idToken.substring(0, 30)}...");
-
-      // Sign in to Supabase
-      print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("🔄 STEP 7: Authenticating with Supabase");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("⏳ Sending tokens to Supabase...");
-      
+      // ---------------------------
+      // SUPABASE AUTH
+      // ---------------------------
       final AuthResponse response = await supabase.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
       );
 
-      print("\n✅ STEP 7.1: Supabase authentication response received");
-      print("🔍 STEP 8: Analyzing Supabase response");
+      // ---------------------------
+      // Extract Google User Data
+      // ---------------------------
+      final String userName = googleUser.displayName ?? "No Name";
+      final String userEmail = googleUser.email;
+      final String userPhoto = googleUser.photoUrl ?? "https://www.svgrepo.com/show/384670/account-avatar-profile-user.svg";
 
+      LocalStorageService localStorage = Get.find<LocalStorageService>();
+
+      // Save data locally (name, email, photo)
+      localStorage.saveUserEmail(userEmail);
+      localStorage.saveUserName(userName);
+      localStorage.saveUserProfile(userPhoto);
+
+      // ---------------------------
+      // HANDLE SUPABASE USER
+      // ---------------------------
       if (response.user != null) {
-        print("\n✅ STEP 8.1: User authenticated successfully!");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        print("📋 USER DETAILS:");
-        print("   🆔 User ID: ${response.user!.id}");
-        print("   📧 Email: ${response.user!.email}");
-        print("   📱 Phone: ${response.user!.phone ?? 'Not set'}");
-        print("   ⏰ Created At: ${response.user!.createdAt}");
-        print("   🔄 Last Sign In: ${response.user!.lastSignInAt}");
-        print("   ✅ Email Confirmed: ${response.user!.emailConfirmedAt != null}");
-        
-        if (response.session != null) {
-          print("\n🔐 SESSION DETAILS:");
-          print("   ✅ Session Active: Yes");
-          print("   🎫 Access Token (first 30 chars): ${response.session!.accessToken.substring(0, 30)}...");
-          print("   ⏰ Expires At: ${response.session!.expiresAt}");
-          print("   🔄 Refresh Token Present: ${response.session!.refreshToken != null}");
-        }
-        
-        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        print("🎉 STEP 9: Login completed successfully!");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        
-        if (context.mounted) {
-          print("\n✅ STEP 9.1: Showing success message to user");
-          appMessageSuccess(
-            text: 'Welcome ${response.user!.email ?? 'User'}!',
-            context: context,
-          );
-        }
-
-        // Navigate to home
-        print("\n🏠 STEP 10: Navigating to Home Screen");
-        print("   🔄 Transition: Fade In");
-        print("   ⏱️ Duration: 500ms");
-        
-        Get.offAll(
-          () => const HomeView(),
-          transition: Transition.fadeIn,
-          duration: const Duration(milliseconds: 500),
+        final existed = await _ensureUserRecord(
+          user: response.user!,
+          displayName: userName,
+          photoUrl: userPhoto,
         );
-        
-        print("✅ STEP 10.1: Navigation initiated");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        print("✨ Google Sign-In Process Completed Successfully!");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-        
-      } else {
-        print("\n❌ STEP 8.2: Supabase authentication failed");
-        print("   ⚠️ No user data returned from Supabase");
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        
-        if (context.mounted) {
+
+        if (!existed) {
           appMessageFail(
-            text: 'Failed to sign in with Google',
+            text: 'New user created. Please complete profile setup.',
             context: context,
           );
+          return;
         }
+
+        // Existing user → success login
+        appMessageSuccess(
+          text: 'Welcome back $userName!',
+          context: context,
+        );
+
+        Get.offAll(() => const HomeView(),
+            transition: Transition.fadeIn,
+            duration: const Duration(milliseconds: 500));
+
+        return;
       }
 
-    } on AuthException catch (e) {
-      print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("❌ SUPABASE AUTHENTICATION ERROR");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("🔴 Error Type: AuthException");
-      print("📊 Status Code: ${e.statusCode}");
-      print("💬 Error Message: ${e.message}");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-      
-      if (context.mounted) {
-        appMessageFail(
-          text: 'Authentication error: ${e.message}',
-          context: context,
-        );
-      }
-    } catch (e, stackTrace) {
-      print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("❌ UNEXPECTED ERROR");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("🔴 Error Type: ${e.runtimeType}");
-      print("💬 Error Message: $e");
-      print("\n📋 Stack Trace:");
-      print(stackTrace);
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-      
-      if (context.mounted) {
-        appMessageFail(
-          text: 'Failed to sign in: $e',
-          context: context,
-        );
-      }
+      // ---------------------------
+      // SUPABASE FAILED → still save user data from Google
+      // ---------------------------
+      appMessageFail(
+        text: 'Failed to sign in with Google',
+        context: context,
+      );
+
+    } catch (e) {
+      appMessageFail(text: 'Sign in failed: $e', context: context);
     } finally {
       isLoading.value = false;
-      print("🔚 FINAL: Loading state set to false");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     }
   }
+
   ///
   ///
   // Future<void> googleLogin(BuildContext context) async {
@@ -439,7 +415,6 @@ class LoginController extends GetxController {
   //     isLoading.value = false;
   //     print("🔚 STATE: Google Sign-In process ended");
   //     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-  //   }
   // }
 
 

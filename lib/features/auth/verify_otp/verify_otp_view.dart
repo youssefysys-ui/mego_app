@@ -9,6 +9,12 @@ import 'package:mego_app/core/shared_widgets/Custom_button.dart';
 import 'verify_otp_controller.dart';
 
 class VerifyOtpView extends StatelessWidget {
+
+  /*
+ Client ID 851699318144-qj34crl5g2avebai2mu1p5r3k33hm1eu.apps.googleusercontent.com
+
+  client secret : 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
+   */
   final String phoneNumber;
   const VerifyOtpView({super.key, required this.phoneNumber});
 
@@ -30,7 +36,8 @@ class VerifyOtpView extends StatelessWidget {
         child: ListView(
           children: [
             SizedBox(height: 20),
-            SvgPicture.asset(AppImages.logo, height: 100),
+            Image.asset(AppImages.blurLogo,height: 88,),
+          //  SvgPicture.asset(AppImages.logo, height: 100),
             SizedBox(height: 30),
             Text(
               "Verify OTP".tr,
@@ -47,7 +54,7 @@ class VerifyOtpView extends StatelessWidget {
               "Enter the 6-digit code sent to\n${phoneNumber}",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.lightTxtColor,
+                color: AppColors.txtColor,
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
                 fontFamily: 'Roboto',
@@ -120,7 +127,7 @@ class VerifyOtpView extends StatelessWidget {
                 Text(
                   "Didn't receive the code?".tr,
                   style: TextStyle(
-                    color: AppColors.lightTxtColor,
+                    color: AppColors.txtColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     fontFamily: 'Roboto',

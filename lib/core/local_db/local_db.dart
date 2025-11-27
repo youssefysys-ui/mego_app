@@ -22,6 +22,7 @@ class LocalStorageService {
   static const _email = 'user_email';
   static const _name = 'user_name';
   static const _userModelKey = 'user_model';
+  static const _userProfileKey = 'user_profile';
   
   // Location storage keys
   static const _countryKey = 'user_country';
@@ -79,6 +80,7 @@ class LocalStorageService {
   // Splash video read methods
   bool? get splashVideoShown => read<bool>(_splashVideoShownKey);
   String? get splashVideoTimestamp => read<String>(_splashVideoTimestampKey);
+  String? get userProfile => read<String>(_userProfileKey);
 
 //write
   Future<void> saveAuthToken(String token) async => await write(_authTokenKey, token);
@@ -116,6 +118,7 @@ class LocalStorageService {
   // Splash video write methods
   Future<void> saveSplashVideoShown(bool shown) async => await write(_splashVideoShownKey, shown);
   Future<void> saveSplashVideoTimestamp(String timestamp) async => await write(_splashVideoTimestampKey, timestamp);
+  Future<void> saveUserProfile(String profile) async => await write(_userProfileKey, profile);
   
   /// Mark splash video as shown with current timestamp
   Future<void> markSplashVideoAsShown() async {
@@ -162,6 +165,7 @@ class LocalStorageService {
   Future<void> deleteUserName() async => await delete(_name);
   Future<void> deleteUserEmail() async => await delete(_email);
   Future<void> deleteUserModel() async => await delete(_userModelKey);
+  Future<void> deleteUserProfile() async => await delete(_userProfileKey);
   
   // Location delete methods
   Future<void> deleteUserCountry() async => await delete(_countryKey);
@@ -303,7 +307,6 @@ class LocalStorageService {
       return true;
     }
   }
-
 }
 
 /// Global service locator
