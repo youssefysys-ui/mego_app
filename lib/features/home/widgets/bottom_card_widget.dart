@@ -138,7 +138,10 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                     _buildLocationItem(
                       Icons.location_on,
                       selectedService == 'Ride'
-                          ? widget.lastUserDropOffLocation[0]:"",
+                          ? (widget.lastUserDropOffLocation.isNotEmpty 
+                              ? widget.lastUserDropOffLocation[0] 
+                              : "Coffee house")
+                          : "Coffee house",
                       // 'Coffee house'
                       //     : 'Pizza Restaurant',
                     ),
@@ -146,7 +149,10 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                     _buildLocationItem(
                       Icons.location_on,
                       selectedService == 'Ride'
-                          ? widget.lastUserDropOffLocation[1]:"",
+                          ? (widget.lastUserDropOffLocation.length > 1 
+                              ? widget.lastUserDropOffLocation[1] 
+                              : "Inn Hotel")
+                          : "Inn Hotel",
                       //'Inn Hotel'
                         //  : 'Burger Place',
                     ),

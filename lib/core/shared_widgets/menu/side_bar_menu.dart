@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/loading/loading.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/utils/app_message.dart';
+import 'package:mego_app/features/settings/settings_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../features/about_us/about_us_view.dart';
 import '../../../features/auth/login/views/login_view.dart';
@@ -20,6 +21,13 @@ class SideBarMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get user data from local storage
+    final localStorage = GetIt.instance<LocalStorageService>();
+    final userName = localStorage.userName ?? 'User';
+    final userEmail = localStorage.userEmail ?? 'user@example.com';
+    final userProfile = localStorage.userProfile;
+    final userPhone = localStorage.read<String>('user_phone') ?? '';
+
     return Drawer(
       backgroundColor: AppColors.primaryColor,
       child: Column(
@@ -33,16 +41,28 @@ class SideBarMenu extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 33),
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 34,
-                      backgroundImage: NetworkImage(
-                        'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=300',
-                      ),
+                      backgroundImage: userProfile != null && userProfile.isNotEmpty
+                          ? NetworkImage(userProfile)
+                          : null,
+                      backgroundColor: Colors.white24,
+                      child: userProfile == null || userProfile.isEmpty
+                          ? Text(
+                              userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Roboto',
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Kamilia Tomason',
-                      style: TextStyle(
+                    Text(
+                      userName,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 19,
                         fontWeight: FontWeight.bold,
@@ -50,14 +70,26 @@ class SideBarMenu extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Kamilia@gmail.com',
-                      style: TextStyle(
+                    Text(
+                      userEmail,
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 13,
                         fontFamily: 'Roboto',
                       ),
                     ),
+                    if (userPhone.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          userPhone,
+                          style: const TextStyle(
+                            color: Colors.white60,
+                            fontSize: 12,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -95,7 +127,16 @@ class SideBarMenu extends StatelessWidget {
                   },
                   iconSize: 22,
                 ),
-               
+                const Divider(color: Colors.white24, height: 1),
+                _buildMenuItem(
+                  icon: AppImages.settingsIcon,
+                  title: 'Settings',
+                  onTap: () {
+                    Get.to( SettingsView());
+                  },
+                  iconSize: 22,
+                ),
+
                 const Divider(color: Colors.white24, height: 1),
                 _buildMenuItem(
                   icon: AppImages.couponsIcon,
@@ -129,45 +170,46 @@ class SideBarMenu extends StatelessWidget {
 
           // Bottom Toggle Buttons
           Padding(
-            padding:  EdgeInsets.all(16),
-            child: Container(
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.backgroundColor,
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(22),
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+            child: Center(
+              child: Container(
+                height: 65,
+                width: 220,
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundColor,
+                  borderRadius: BorderRadius.circular(23),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: SvgPicture.asset(AppImages.car),
+                        ),
                       ),
-                      child:Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SvgPicture.asset(AppImages.car),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(2.5),
+                        child: Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: SvgPicture.asset(AppImages.food),
+                        ),
                       ),
-
-                      // const Icon(
-                      //   Icons.directions_car,
-                      //   color: Colors.white,
-                      //   size: 24,
-                      // ),
                     ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(3),
-                      child: SvgPicture.asset(AppImages.food)
-
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
+
+          SizedBox(height: 44,),
         ],
       ),
     );

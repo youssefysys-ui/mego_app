@@ -41,13 +41,12 @@ class _HomeViewState extends State<HomeView> {
           // Bottom Container with ride options and search
           GetBuilder<HomeController>(
             builder: (_) {
-              if(controller.lastDropOffLocations.isNotEmpty) {
+              //if(controller.lastDropOffLocations.isNotEmpty) {
                 return BottomCardWidget(lastUserDropOffLocation: controller.lastDropOffLocations,
-
                 );
-              }else{
-                return const SizedBox();
-              }
+              // }else{
+              //   return const SizedBox();
+              // }
 
             }
           ),

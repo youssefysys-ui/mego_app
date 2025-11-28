@@ -408,6 +408,13 @@
             </list>
           </value>
         </entry>
+        <entry key="google_identity_services_web">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3+1/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="google_maps">
           <value>
             <list>
@@ -447,6 +454,41 @@
           <value>
             <list>
               <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_web-0.5.14+3/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="google_sign_in">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in-6.3.0/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="google_sign_in_android">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_android-6.2.1/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="google_sign_in_ios">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_ios-5.9.0/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="google_sign_in_platform_interface">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_platform_interface-2.5.0/lib" />
+            </list>
+          </value>
+        </entry>
+        <entry key="google_sign_in_web">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_web-0.12.4+4/lib" />
             </list>
           </value>
         </entry>
@@ -1137,12 +1179,18 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/get-4.7.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/get_it-8.3.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/get_storage-2.1.1/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3+1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps-8.2.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter-2.14.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_android-2.18.3/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_ios-2.15.5/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_platform_interface-2.14.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_web-0.5.14+3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in-6.3.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_android-6.2.1/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_ios-5.9.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_platform_interface-2.5.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_web-0.12.4+4/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/googleapis_auth-1.4.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/gotrue-2.16.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/gtk-2.1.0/lib" />

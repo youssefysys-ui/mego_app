@@ -10,6 +10,7 @@ import '../../../core/res/app_colors.dart';
 import '../../../core/shared_models/ride_model.dart';
 import '../../../core/shared_widgets/menu/drawer_menu_icon.dart';
 import '../../../core/shared_widgets/menu/side_bar_menu.dart';
+import '../../../core/shared_widgets/menu/safety_call_button.dart';
 
 class TripTrackingView extends StatelessWidget {
   final UserRideData userRideData;
@@ -47,6 +48,9 @@ class TripTrackingView extends StatelessWidget {
 
             // Top left menu button with drIcon
             const DrawerMenuIcon(),
+            
+            // Safety call button below menu
+            const SafetyCallButton(),
 
             // Bottom trip info overlay
             Positioned(

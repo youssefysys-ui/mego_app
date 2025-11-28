@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/auth/verify_otp/verify_otp_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/local_db/local_db.dart';
-import '../repo/login_repo.dart';
+import '../../../auth/complete_profile/views/complete_profile_view.dart';
 
 class LoginController extends GetxController {
   // Dependencies
@@ -96,14 +96,14 @@ class LoginController extends GetxController {
   }
 
   /// Ensure a row exists in 'users' table for the authenticated user.
-  /// Returns true if the user already existed, false if inserted as new.
-  Future<bool> _ensureUserRecord({
+  /// Returns user data map with existed status and user details.
+  Future<Map<String, dynamic>> _ensureUserRecord({
     required User user,
     String? displayName,
     String? photoUrl,
+    String? source, // 'phone' or 'google'
   }) async {
-
-    print("USER==="+user.toString());
+    print("USER===" + user.toString());
     try {
       print('\n🗄️ STEP DB-1: Checking users table for existing record');
       final existing = await supabase
@@ -112,7 +112,7 @@ class LoginController extends GetxController {
           .eq('id', user.id)
           .maybeSingle();
 
-      print("EX=="+existing.toString());
+      print("EX==" + existing.toString());
       if (existing != null) {
         print('✅ STEP DB-2: Existing user found in users table');
         print('   🆔 id: ${existing['id']}');
@@ -121,42 +121,44 @@ class LoginController extends GetxController {
         print('   📱 phone: ${existing['phone']}');
         print('   🏷️ user_type: ${existing['user_type']}');
         print('   🖼️ profile: ${existing['profile']}');
-        return true; // existing user
+        
+        return {
+          'existed': true,
+          'userId': existing['id'],
+          'userName': existing['name'],
+          'userEmail': existing['email'],
+          'userPhone': existing['phone'],
+          'userPhoto': existing['profile'],
+          'source': source ?? 'unknown',
+        };
       }
 
-      print('🆕 STEP DB-3: No user row found. Inserting new user row');
-      print("photoURL=="+photoUrl.toString());
-      print("photoURL22222=="+user.userMetadata.toString());
-      final insertPayload = {
-        'id': user.id,
-        'name': displayName ?? user.userMetadata?['name'] ?? user.email ?? 'MEGO User',
-        'email': user.email,
-        'phone':'909',
-        //user.phone,
-        'user_type': 'rider', // default
-        'profile': photoUrl ?? user.userMetadata?['avatar_url'] ?? '',
-        // created_at uses default now() on server
+      print('🆕 STEP DB-3: No user row found - New user detected');
+      print("   Will need to complete profile");
+      
+      // Return new user data (don't insert yet, let complete profile do it)
+      return {
+        'existed': false,
+        'userId': user.id,
+        'userName': displayName ?? user.userMetadata?['name'] ?? user.email ?? 'MEGO User',
+        'userEmail': user.email ?? '',
+        'userPhone': user.phone ?? '',
+        'userPhoto': photoUrl ?? user.userMetadata?['avatar_url'] ?? '',
+        'source': source ?? 'unknown',
       };
-
-      final inserted = await supabase
-          .from('users')
-          .insert(insertPayload)
-          .select()
-          .maybeSingle();
-      print('✅ STEP DB-4: User row inserted successfully');
-      print('   🆔 id: ${inserted?['id']}');
-      print('   👤 name: ${inserted?['name']}');
-      print('   📧 email: ${inserted?['email']}');
-      print('   📱 phone: ${inserted?['phone']}');
-      print('   🏷️ user_type: ${inserted?['user_type']}');
-      print('   🖼️ profile: ${inserted?['profile']}');
-
-      return false; // new user inserted
     } catch (e, st) {
       print('❌ STEP DB-ERR: Failed ensuring user record: $e');
       print(st);
-      // If DB check fails, treat as new to avoid unintended navigation
-      return false;
+      // If DB check fails, treat as new to be safe
+      return {
+        'existed': false,
+        'userId': user.id,
+        'userName': displayName ?? 'MEGO User',
+        'userEmail': user.email ?? '',
+        'userPhone': user.phone ?? '',
+        'userPhoto': photoUrl ?? '',
+        'source': source ?? 'unknown',
+      };
     }
   }
 
@@ -212,41 +214,61 @@ class LoginController extends GetxController {
       final String userEmail = googleUser.email;
       final String userPhoto = googleUser.photoUrl ?? "https://www.svgrepo.com/show/384670/account-avatar-profile-user.svg";
 
-      LocalStorageService localStorage = Get.find<LocalStorageService>();
-
-      // Save data locally (name, email, photo)
-      localStorage.saveUserEmail(userEmail);
-      localStorage.saveUserName(userName);
-      localStorage.saveUserProfile(userPhoto);
-
       // ---------------------------
       // HANDLE SUPABASE USER
       // ---------------------------
       if (response.user != null) {
-        final existed = await _ensureUserRecord(
+        print('✅ STEP 7: Checking user record in database');
+        
+        final userRecord = await _ensureUserRecord(
           user: response.user!,
           displayName: userName,
           photoUrl: userPhoto,
+          source: 'google',
         );
 
-        if (!existed) {
-          appMessageFail(
-            text: 'New user created. Please complete profile setup.',
+        if (!userRecord['existed']) {
+          print('🆕 STEP 8: New user detected - Navigate to Complete Profile');
+          appMessageSuccess(
+            text: 'Welcome! Please complete your profile',
             context: context,
+          );
+          
+          // Navigate to complete profile for phone verification
+          Get.offAll(
+            () => const CompleteProfileView(),
+            arguments: {
+              'userId': userRecord['userId'],
+              'source': 'google',
+              'name': userName,
+              'email': userEmail,
+              'photo': userPhoto,
+            },
           );
           return;
         }
 
-        // Existing user → success login
+        print('✅ STEP 8: Existing user - Save to local storage');
+        // Existing user → save data locally
+        final box = GetStorage();
+        LocalStorageService localStorage = Get.put(LocalStorageService(box));
+        
+        await localStorage.saveUserEmail(userRecord['userEmail'] ?? userEmail);
+        await localStorage.saveUserName(userRecord['userName'] ?? userName);
+        await localStorage.saveUserProfile(userRecord['userPhoto'] ?? userPhoto);
+        if (userRecord['userPhone'] != null && userRecord['userPhone'].toString().isNotEmpty) {
+          await localStorage.write('user_phone', userRecord['userPhone']);
+        }
+
+        print('✅ STEP 9: Navigate to Home');
         appMessageSuccess(
-          text: 'Welcome back $userName!',
+          text: 'Welcome back ${userRecord['userName']}!',
           context: context,
         );
 
         Get.offAll(() => const HomeView(),
             transition: Transition.fadeIn,
             duration: const Duration(milliseconds: 500));
-
         return;
       }
 
@@ -259,6 +281,7 @@ class LoginController extends GetxController {
       );
 
     } catch (e) {
+      print("❌ Error during Google Sign-In: $e");
       appMessageFail(text: 'Sign in failed: $e', context: context);
     } finally {
       isLoading.value = false;

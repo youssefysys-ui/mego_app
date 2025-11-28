@@ -5,6 +5,7 @@ import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/shared_models/user_model.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../complete_profile/views/complete_profile_view.dart';
 
 class VerifyOtpController extends GetxController {
   // Text controllers for OTP inputs
@@ -94,21 +95,39 @@ class VerifyOtpController extends GetxController {
         print('User ID: ${response.user!.id}');
         print('Phone: ${response.user!.phone}');
         
-        // Check if user exists in users table and create if needed
-        await _checkAndCreateUserProfile(response.user!, phoneNumber);
+        // Check if this is profile completion flow
+        final arguments = Get.arguments as Map<String, dynamic>?;
+        final isProfileCompletion = arguments?['isProfileCompletion'] == true;
         
-        if (context.mounted) {
-          appMessageSuccess(
-            text: 'Verification successful!',
-            context: context,
+        if (isProfileCompletion) {
+          // Handle Google user profile completion
+          await _handleGoogleUserProfileCompletion(
+            response.user!,
+            phoneNumber,
+            arguments!,
+            context,
           );
+        } else {
+          // Regular phone login flow - check if user exists
+          final userExists = await _checkAndCreateUserProfile(response.user!, phoneNumber);
+          
+          // Only navigate to home if user already existed
+          if (userExists) {
+            if (context.mounted) {
+              appMessageSuccess(
+                text: 'Verification successful!',
+                context: context,
+              );
+            }
+            
+            // Navigate to home for existing users
+            Get.offAll(() => const HomeView(),
+              transition: Transition.leftToRightWithFade,
+              duration: const Duration(milliseconds: 900),
+            );
+          }
+          // If user is new, _checkAndCreateUserProfile already navigated to CompleteProfileView
         }
-        
-        // Navigate to home
-        Get.offAll(() => const HomeView(),
-          transition: Transition.leftToRightWithFade,
-          duration: const Duration(milliseconds: 900),
-        );
       } else {
         throw Exception('Verification failed - no user returned');
       }
@@ -137,18 +156,80 @@ class VerifyOtpController extends GetxController {
     }
   }
   
-  Future<void> _checkAndCreateUserProfile(User user, String phoneNumber) async {
+  /// Handle Google user profile completion after phone verification
+  Future<void> _handleGoogleUserProfileCompletion(
+    User user,
+    String phoneNumber,
+    Map<String, dynamic> arguments,
+    BuildContext context,
+  ) async {
+    print('🔄 Completing Google user profile with verified phone...');
+    
+    final userId = arguments['userId'];
+    final name = arguments['name'];
+    final email = arguments['email'];
+    final photo = arguments['photo'];
+    
+    // Insert user into users table
+    await supabase.from('users').insert({
+      'id': userId,
+      'name': name ?? 'MEGO User',
+      'email': email ?? '',
+      'phone': phoneNumber,
+      'profile': photo ?? '',
+      'user_type': 'rider',
+    });
+    
+    print('✅ Google user profile saved with phone verification');
+    
+    // Save to local storage
+    await storage.saveUserName(name ?? 'MEGO User');
+    await storage.saveUserEmail(email ?? '');
+    await storage.write('user_phone', phoneNumber);
+    if (photo != null && photo.isNotEmpty) {
+      await storage.saveUserProfile(photo);
+    }
+    
+    print('✅ User data saved to local storage');
+    
+    if (context.mounted) {
+      appMessageSuccess(
+        text: 'Welcome ${name ?? "User"}!',
+        context: context,
+      );
+    }
+    
+    // Navigate to home
+    Get.offAll(() => const HomeView(),
+      transition: Transition.leftToRightWithFade,
+      duration: const Duration(milliseconds: 900),
+    );
+  }
+  
+  Future<bool> _checkAndCreateUserProfile(User user, String phoneNumber) async {
     try {
       final existingUser = await _checkIfUserExists(user.id);
       
       if (existingUser == null) {
-        await _createNewUserProfile(user, phoneNumber);
+        // New user - navigate to complete profile
+        print('🆕 New phone user detected - Navigate to Complete Profile');
+        Get.offAll(
+          () => const CompleteProfileView(),
+          arguments: {
+            'userId': user.id,
+            'source': 'phone',
+            'phone': phoneNumber,
+          },
+        );
+        return false; // User is new
       } else {
         await _handleExistingUser(existingUser);
+        return true; // User exists
       }
     } catch (e) {
       print('❌ Error managing user profile: $e');
       // Don't throw error here, verification was successful
+      return true; // Assume existing user on error to avoid blocking login
     }
   }
 

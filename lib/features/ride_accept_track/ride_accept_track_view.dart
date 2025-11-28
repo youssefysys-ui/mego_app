@@ -10,6 +10,7 @@ import '../../core/shared_models/user_ride_data.dart';
 import '../../core/shared_models/driver_model.dart';
 import '../../core/shared_widgets/menu/side_bar_menu.dart';
 import '../../core/shared_widgets/menu/drawer_menu_icon.dart';
+import '../../core/shared_widgets/menu/safety_call_button.dart';
 import 'controllers/rider_accept_track_controller.dart' show RiderAcceptTrackController;
 
 class RideAcceptTrackView extends StatelessWidget {
@@ -67,6 +68,9 @@ class RideAcceptTrackView extends StatelessWidget {
               
               // Top left menu button with drIcon
               const DrawerMenuIcon(),
+              
+              // Safety call button below menu
+              const SafetyCallButton(),
             ],
           ),
         ),

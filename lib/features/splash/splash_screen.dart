@@ -168,22 +168,36 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryColor,
-              AppColors.primaryColor.withValues(alpha: 0.95),
-              AppColors.primaryColor,
-            ],
+      body: Stack(
+        children: [
+          // Background with megoStyleImage
+          Positioned.fill(
+            child: SvgPicture.asset(
+              AppImages.megoStyleImage,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+          // Gradient overlay for better text visibility
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.primaryColor.withValues(alpha: 0.7),
+                    AppColors.primaryColor.withValues(alpha: 0.8),
+                    AppColors.primaryColor.withValues(alpha: 0.9),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Main content
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
               // Premium Animated Logo
               AnimatedBuilder(
                 animation: _logoController,
@@ -360,6 +374,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ],
           ),
         ),
+        ],
       ),
     );
   }
