@@ -80,7 +80,8 @@ class AboutUsView extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.primaryColor,
-            AppColors.appSurfaceColor,
+            AppColors.primaryColor,
+            //AppColors.appSurfaceColor,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -153,7 +154,7 @@ class AboutUsView extends StatelessWidget {
           const SizedBox(height: 8),
           
           Text(
-            'Your Journey, Our Passion',
+            'More than a ride, it\'s MEGO',
             style: TextStyle(
               fontFamily: 'Roboto',
               fontSize: 16,
@@ -188,7 +189,8 @@ class AboutUsView extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 AppColors.primaryColor,
-                AppColors.appSurfaceColor,
+                AppColors.primaryColor,
+               // AppColors.appSurfaceColor,
               ],
             ),
             borderRadius: BorderRadius.circular(2),
@@ -205,7 +207,8 @@ class AboutUsView extends StatelessWidget {
         color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.primaryColor.withValues(alpha: 0.1),
+          color: AppColors.primaryColor
+              .withValues(alpha: 0.1),
           width: 1,
         ),
       ),

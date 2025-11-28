@@ -44,15 +44,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       vsync: this,
     );
 
-    // Text animations - sequential reveal
+    // Text animations - sequential reveal (faster)
     _textController = AnimationController(
-      duration: const Duration(milliseconds: 2500),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
     // Shimmer effect for premium feel
     _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
@@ -80,27 +80,27 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
-    // Text fade in
+    // Text fade in (faster)
     _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _textController,
-        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
       ),
     );
 
-    // Text slide up
+    // Text slide up (faster)
     _textSlideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _textController,
-        curve: const Interval(0.3, 0.7, curve: Curves.easeOutCubic),
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
       ),
     );
 
-    // Tagline delayed fade
+    // Tagline delayed fade (faster)
     _taglineFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _textController,
-        curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
+        curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
       ),
     );
 
@@ -118,14 +118,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _logoController.forward();
 
     // Start text animation with slight delay
-    Future.delayed(const Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _textController.forward();
       }
     });
 
     // Start shimmer effect
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         _shimmerController.repeat();
       }
@@ -167,178 +167,124 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryColor,
+      appBar:AppBar(
+        backgroundColor:AppColors.backgroundColor,
+      ),
+      backgroundColor: AppColors.backgroundColor,
       body: Stack(
         children: [
-          // Background with megoStyleImage
-          Positioned.fill(
-            child: SvgPicture.asset(
-              AppImages.megoStyleImage,
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Gradient overlay for better text visibility
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.primaryColor.withValues(alpha: 0.7),
-                    AppColors.primaryColor.withValues(alpha: 0.8),
-                    AppColors.primaryColor.withValues(alpha: 0.9),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Main content
+
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(height: 40),
               // Premium Animated Logo
-              AnimatedBuilder(
-                animation: _logoController,
-                builder: (context, child) {
-                  return Transform.rotate(
-                    angle: _logoRotateAnimation.value,
-                    child: FadeTransition(
-                      opacity: _logoFadeAnimation,
-                      child: ScaleTransition(
-                        scale: _logoScaleAnimation,
-                        child: Container(
-                          padding: const EdgeInsets.all(30),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryColor.withValues(alpha: 0.3),
-                                blurRadius: 40,
-                                spreadRadius: 8,
-                                offset: const Offset(0, 15),
-                              ),
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                blurRadius: 20,
-                                spreadRadius: -5,
-                                offset: const Offset(0, -5),
-                              ),
-                            ],
-                          ),
-                          child: SvgPicture.asset(
-                            AppImages.logo,
-                            width: 120,
-                            height: 120,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                SvgPicture.asset(
+                  AppImages.logo,
+                  width: 120,
+                  height: 120,
+                ),
 
               const SizedBox(height: 40),
 
               // App Name with Premium Animation
-              AnimatedBuilder(
-                animation: _textController,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _textSlideAnimation.value),
-                    child: FadeTransition(
-                      opacity: _textFadeAnimation,
-                      child: Stack(
-                        children: [
-                          // Shimmer effect overlay
-                          AnimatedBuilder(
-                            animation: _shimmerController,
-                            builder: (context, child) {
-                              return ShaderMask(
-                                blendMode: BlendMode.srcATop,
-                                shaderCallback: (bounds) {
-                                  return LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.white.withValues(alpha: 0.0),
-                                      Colors.white.withValues(alpha: 0.3),
-                                      Colors.white.withValues(alpha: 0.0),
-                                    ],
-                                    stops: const [0.0, 0.5, 1.0],
-                                    transform: GradientRotation(_shimmerAnimation.value),
-                                  ).createShader(bounds);
-                                },
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'ME',
-                                        style: TextStyle(
-                                          fontSize: 42,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Montserrat',
-                                          color: AppColors.whiteColor,
-                                          fontStyle: FontStyle.italic,
-                                          letterSpacing: 2,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: 'GO',
-                                        style: TextStyle(
-                                          fontSize: 42,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Montserrat',
-                                          color: AppColors.buttonColor,
-                                          fontStyle: FontStyle.italic,
-                                          letterSpacing: 2,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Base text
-                          RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'ME',
-                                  style: TextStyle(
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Montserrat',
-                                    color: AppColors.whiteColor,
-                                    fontStyle: FontStyle.italic,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'GO',
-                                  style: TextStyle(
-                                    fontSize: 42,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Montserrat',
-                                    color: AppColors.buttonColor,
-                                    fontStyle: FontStyle.italic,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
+              // AnimatedBuilder(
+              //   animation: _textController,
+              //   builder: (context, child) {
+              //     return Transform.translate(
+              //       offset: Offset(0, _textSlideAnimation.value),
+              //       child: FadeTransition(
+              //         opacity: _textFadeAnimation,
+              //         child: Stack(
+              //           children: [
+              //             // Shimmer effect overlay
+              //             AnimatedBuilder(
+              //               animation: _shimmerController,
+              //               builder: (context, child) {
+              //                 return ShaderMask(
+              //                   blendMode: BlendMode.srcATop,
+              //                   shaderCallback: (bounds) {
+              //                     return LinearGradient(
+              //                       begin: Alignment.topLeft,
+              //                       end: Alignment.bottomRight,
+              //                       colors: [
+              //                         Colors.white.withValues(alpha: 0.0),
+              //                         Colors.white.withValues(alpha: 0.3),
+              //                         Colors.white.withValues(alpha: 0.0),
+              //                       ],
+              //                       stops: const [0.0, 0.5, 1.0],
+              //                       transform: GradientRotation(_shimmerAnimation.value),
+              //                     ).createShader(bounds);
+              //                   },
+              //                   child: RichText(
+              //                     text: TextSpan(
+              //                       children: [
+              //                         TextSpan(
+              //                           text: 'ME',
+              //                           style: TextStyle(
+              //                             fontSize: 42,
+              //                             fontWeight: FontWeight.bold,
+              //                             fontFamily: 'Montserrat',
+              //                             color: AppColors.whiteColor,
+              //                             fontStyle: FontStyle.italic,
+              //                             letterSpacing: 2,
+              //                           ),
+              //                         ),
+              //                         TextSpan(
+              //                           text: 'GO',
+              //                           style: TextStyle(
+              //                             fontSize: 42,
+              //                             fontWeight: FontWeight.bold,
+              //                             fontFamily: 'Montserrat',
+              //                             color: AppColors.buttonColor,
+              //                             fontStyle: FontStyle.italic,
+              //                             letterSpacing: 2,
+              //                           ),
+              //                         ),
+              //                       ],
+              //                     ),
+              //                   ),
+              //                 );
+              //               },
+              //             ),
+              //             // Base text
+              //             RichText(
+              //               text: TextSpan(
+              //                 children: [
+              //                   TextSpan(
+              //                     text: 'ME',
+              //                     style: TextStyle(
+              //                       fontSize: 42,
+              //                       fontWeight: FontWeight.bold,
+              //                       fontFamily: 'Montserrat',
+              //                       color: AppColors.whiteColor,
+              //                       fontStyle: FontStyle.italic,
+              //                       letterSpacing: 2,
+              //                     ),
+              //                   ),
+              //                   TextSpan(
+              //                     text: 'GO',
+              //                     style: TextStyle(
+              //                       fontSize: 42,
+              //                       fontWeight: FontWeight.bold,
+              //                       fontFamily: 'Montserrat',
+              //                       color: AppColors.buttonColor,
+              //                       fontStyle: FontStyle.italic,
+              //                       letterSpacing: 2,
+              //                     ),
+              //                   ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     );
+              //   },
+              // ),
+              //
+              // const SizedBox(height: 12),
 
               // Tagline with Delayed Fade
               AnimatedBuilder(
@@ -351,8 +297,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Roboto',
-                        color: Colors.grey[100],
-                        letterSpacing: 0.5,
+                        color: AppColors.primaryColor,
+                       fontWeight:FontWeight.w700
                       ),
                     ),
                   );
@@ -370,6 +316,53 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     child: LoadingWidget(),
                   );
                 },
+              ),
+
+              // Animated Welcome Text
+              Padding(
+                padding: const EdgeInsets.only(top: 101),
+                child: AnimatedBuilder(
+                  animation: _textController,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, _textSlideAnimation.value * 1.5),
+                      child: FadeTransition(
+                        opacity: _taglineFadeAnimation,
+                        child: TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 800),
+                          tween: Tween<double>(begin: 0.0, end: 1.0),
+                          curve: Curves.easeInOut,
+                          builder: (context, value, child) {
+                            return Opacity(
+                              opacity: value,
+                              child: Transform.scale(
+                                scale: 0.8 + (0.2 * value),
+                                child: Text(
+                                  "Welcome",
+                                  style: TextStyle(
+                                    color: AppColors.primaryColor,
+                                    fontSize: 25,
+                                    fontFamily: 'Montserrat',
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FontStyle.italic,
+                                    letterSpacing: 1.5,
+                                    shadows: [
+                                      Shadow(
+                                        color: AppColors.primaryColor.withValues(alpha: 0.3),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
