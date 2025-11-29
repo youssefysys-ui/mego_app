@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
+import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import '../../core/res/app_colors.dart';
 import 'customer_chat_controller.dart';
 
@@ -15,65 +16,16 @@ class CustomerChatView extends StatelessWidget {
       backgroundColor: AppColors.backgroundColor,
       appBar: CustomAppBar(isBack: true),
 
-      // AppBar(
-      //   backgroundColor: AppColors.appBarColor,
-      //   elevation: 0,
-      //   leading: IconButton(
-      //     icon: Icon(Icons.arrow_back_ios, color: AppColors.whiteColor),
-      //     onPressed: () => Get.back(),
-      //   ),
-      //   title: Row(
-      //     children: [
-      //       Container(
-      //         padding: const EdgeInsets.all(8),
-      //         decoration: BoxDecoration(
-      //           color: AppColors.whiteColor.withOpacity(0.2),
-      //           shape: BoxShape.circle,
-      //         ),
-      //         child: Icon(
-      //           Icons.support_agent_rounded,
-      //           color: AppColors.whiteColor,
-      //           size: 24,
-      //         ),
-      //       ),
-      //       const SizedBox(width: 12),
-      //       Column(
-      //         crossAxisAlignment: CrossAxisAlignment.start,
-      //         children: [
-      //           Text(
-      //             'Customer Support',
-      //             style: TextStyle(
-      //               fontFamily: 'Roboto',
-      //               fontSize: 18,
-      //               fontWeight: FontWeight.w600,
-      //               color: AppColors.whiteColor,
-      //             ),
-      //           ),
-      //           Text(
-      //             'Online',
-      //             style: TextStyle(
-      //               fontFamily: 'Roboto',
-      //               fontSize: 12,
-      //               fontWeight: FontWeight.w400,
-      //               color: AppColors.whiteColor.withOpacity(0.8),
-      //             ),
-      //           ),
-      //         ],
-      //       ),
-      //     ],
-      //   ),
-      // ),
+
       body: Column(
         children: [
           // Messages List
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryColor,
-                  ),
-                );
+
+                return LoadingWidget();
+
               }
 
               if (controller.messages.isEmpty) {
@@ -156,6 +108,9 @@ class CustomerChatView extends StatelessWidget {
                   // Text Input Field
                   Expanded(
                     child: Container(
+                      constraints: const BoxConstraints(
+                        maxHeight: 120, // Limit height to prevent overflow
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.backgroundColor,
                         borderRadius: BorderRadius.circular(25),
@@ -180,7 +135,8 @@ class CustomerChatView extends StatelessWidget {
                             vertical: 12,
                           ),
                         ),
-                        maxLines: null,
+                        maxLines: 5,
+                        minLines: 1,
                         textCapitalization: TextCapitalization.sentences,
                       ),
                     ),

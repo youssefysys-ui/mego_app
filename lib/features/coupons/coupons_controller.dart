@@ -18,13 +18,16 @@ class CouponsController extends GetxController {
 
   late final SupabaseClient _supabase;
   late final LocalStorageService _localStorage;
-  String? get currentUserId => _supabase.auth.currentUser?.id;
+  String   userId ='';
+
 
   @override
   void onInit() {
+    _localStorage=GetIt.instance<LocalStorageService>();
     super.onInit();
+    userId = _localStorage.userId.toString();
     _supabase = Supabase.instance.client;
-    _localStorage = GetIt.instance<LocalStorageService>();
+
     _loadSelectedCouponFromStorage();
     loadCoupons();
   }
@@ -49,10 +52,10 @@ class CouponsController extends GetxController {
   List<Coupon> _generateTestData() {
     print("🛠️ Generating test coupon data...");
     final now = DateTime.now();
-    final userId = currentUserId ?? '00000000-0000-0000-0000-000000000000';
-
-    // للكوبونات المتاحة للجميع، استخدم نفس user_id أو UUID ثابت
-    final systemUserId = currentUserId ?? '00000000-0000-0000-0000-000000000000';
+    // String userId = userId?? '00000000-0000-0000-0000-000000000000';
+    //
+    // // للكوبونات المتاحة للجميع، استخدم نفس user_id أو UUID ثابت
+    final systemUserId = userId ?? '00000000-0000-0000-0000-000000000000';
 
     return [
       // Client-specific coupons (for current user only)
@@ -155,7 +158,7 @@ class CouponsController extends GetxController {
 
   /// Load user coupons from Supabase or test data
   Future<void> loadCoupons() async {
-    if (currentUserId == null) {
+    if (userId =='null') {
       errorMessage.value = 'Please login to view your coupons';
       print('⚠️ No current user ID found');
       return;
@@ -165,13 +168,13 @@ class CouponsController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      print('🔍 Fetching coupons for user: $currentUserId');
+      print('🔍 Fetching coupons for user: $userId');
 
       // Fetch coupons where user_id = current user OR coupon_for = 'all'
       final response = await _supabase
           .from('coupons')
           .select()
-          .or('user_id.eq.$currentUserId,coupon_for.eq.all')
+          .or('user_id.eq.$userId,coupon_for.eq.all')
           .order('created_at', ascending: false);
 
       print('📦 Raw response: $response');
@@ -424,12 +427,8 @@ class CouponsController extends GetxController {
 
   /// Insert test data into Supabase (for initial setup)
   Future<void> insertTestDataToSupabase() async {
-    if (currentUserId == null) {
-      Get.snackbar(
-        'Error',
-        'Please login first to insert test data',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    if (userId == 'null') {
+      appMessageFail(text: 'Please login first to insert test data', context:Get.context!);
       return;
     }
 
@@ -450,12 +449,9 @@ class CouponsController extends GetxController {
 
       print('✅ Test data inserted successfully');
 
-      Get.snackbar(
-        'Success',
-        'Test data inserted successfully! ${testData.length} coupons added.',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
-      );
+      appMessageSuccess(text: 'Test data inserted successfully! ${testData.length} coupons added.', context: Get.context!);
+
+
 
       // Reload coupons from database
       await loadCoupons();
@@ -463,12 +459,8 @@ class CouponsController extends GetxController {
     } catch (e, stackTrace) {
       print('❌ Error inserting test data: $e');
       print('Stack trace: $stackTrace');
-      Get.snackbar(
-        'Error',
-        'Failed to insert test data: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 4),
-      );
+      appMessageFail(text: 'Failed to insert test data: $e', context:Get.context!);
+
     } finally {
       isLoading.value = false;
     }

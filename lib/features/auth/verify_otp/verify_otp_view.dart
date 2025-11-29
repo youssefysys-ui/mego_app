@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/Custom_button.dart';
+import 'package:mego_app/features/auth/verify_otp/verify_otp_controller.dart';
 
 import 'verify_otp_controller.dart';
 
@@ -134,18 +135,18 @@ class VerifyOtpView extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 5),
-                TextButton(
-                  onPressed: () => controller.resendOtp(context,phoneNumber),
-                  child: Text(
-                    "Resend".tr,
-                    style: TextStyle(
-                      color: AppColors.primaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
-                ),
+                // TextButton(
+                //   onPressed: () => controller.resendOtp(context,phoneNumber),
+                //   child: Text(
+                //     "Resend".tr,
+                //     style: TextStyle(
+                //       color: AppColors.primaryColor,
+                //       fontSize: 14,
+                //       fontWeight: FontWeight.w600,
+                //       fontFamily: 'Roboto',
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ],

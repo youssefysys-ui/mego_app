@@ -363,9 +363,6 @@ class SearchPlacesController extends GetxController {
     }
   }
 
-  String? getCurrentUserId() {
-    return Supabase.instance.client.auth.currentUser?.id;
-  }
 
   // Refresh current location
   Future<void> refreshCurrentLocation() async {

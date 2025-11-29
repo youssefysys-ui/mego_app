@@ -79,9 +79,14 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
     await _fadeController.forward();
 
     // Check if user is authenticated
-    final session = Supabase.instance.client.auth.currentSession;
+   // final session = Supabase.instance.client.auth.currentSession;
 
-    if (session != null) {
+    final localStorage = GetIt.instance<LocalStorageService>();
+
+    // PROCESS 2: Check if user data exists in local_db
+   // final userName = localStorage.userName;
+    final userEmail = localStorage.userEmail;
+    if (userEmail.toString().length>2&&userEmail.toString()!='null') {
       // User is logged in, go to home with fade transition
       Get.offAll(
         () => const HomeView(),

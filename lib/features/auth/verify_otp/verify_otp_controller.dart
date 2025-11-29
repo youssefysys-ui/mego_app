@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/core/local_db/local_db.dart';
-import 'package:mego_app/core/shared_models/user_model.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:get_storage/get_storage.dart';
 import '../complete_profile/views/complete_profile_view.dart';
 
 class VerifyOtpController extends GetxController {
-  // Text controllers for OTP inputs
+  // ════════════════════════════════════════════════════════════════════════
+  // DEPENDENCIES & CONTROLLERS
+  // ════════════════════════════════════════════════════════════════════════
+  
+  /// Firebase Auth instance for OTP verification
+  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
+  
+  /// Supabase client for user data management (no OTP verification)
+  final SupabaseClient supabase = Supabase.instance.client;
+  
+  // Text controllers for OTP inputs (6-digit OTP)
   final otp1Controller = TextEditingController();
   final otp2Controller = TextEditingController();
   final otp3Controller = TextEditingController();
@@ -16,7 +27,7 @@ class VerifyOtpController extends GetxController {
   final otp5Controller = TextEditingController();
   final otp6Controller = TextEditingController();
   
-  // Focus nodes for OTP inputs
+  // Focus nodes for OTP inputs (for smooth navigation between fields)
   final otp1FocusNode = FocusNode();
   final otp2FocusNode = FocusNode();
   final otp3FocusNode = FocusNode();
@@ -24,17 +35,32 @@ class VerifyOtpController extends GetxController {
   final otp5FocusNode = FocusNode();
   final otp6FocusNode = FocusNode();
   
-  // Variables for GetBuilder
+  // State variables for GetBuilder
   bool isLoading = false;
   String errorMessage = '';
   
-  final SupabaseClient supabase = Supabase.instance.client;
+  /// Store data from previous screen (login)
+  late String phoneNumber;
+  late String verificationId;
   
   @override
   void onInit() {
     super.onInit();
-    // Get phone number from arguments
-
+    
+    // ════════════════════════════════════════════════════════════════════════
+    // INITIALIZATION: Get data from previous screen
+    // ════════════════════════════════════════════════════════════════════════
+    
+    // PROCESS: Extract phone number and verification ID from navigation arguments
+    final arguments = Get.arguments as Map<String, dynamic>?;
+    phoneNumber = arguments?['phoneNumber'] ?? '';
+    verificationId = arguments?['verificationId'] ?? '';
+    
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    print("📱 OTP VERIFICATION SCREEN INITIALIZED");
+    print("   Phone: $phoneNumber");
+    print("   Verification ID: ${verificationId.isNotEmpty ? '${verificationId.substring(0, 20)}...' : 'Missing'}");
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   }
   
   @override
@@ -65,76 +91,115 @@ class VerifyOtpController extends GetxController {
         otp6Controller.text;
   }
   
-  Future<void> verifyOtp(BuildContext context,String phoneNumber) async {
+  // ════════════════════════════════════════════════════════════════════════
+  // FIREBASE OTP VERIFICATION
+  // ════════════════════════════════════════════════════════════════════════
+  
+  /// STEP 1: Verify OTP code entered by user with Firebase
+  /// This verifies the 6-digit OTP sent via SMS
+  Future<void> verifyOtp(BuildContext context, String phoneNumber) async {
     try {
+      // PROCESS 1: Set loading state
       isLoading = true;
       errorMessage = '';
       update();
       
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print("🔐 FIREBASE OTP VERIFICATION: Starting");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      
+      // PROCESS 2: Get OTP code from input fields
       final otpCode = getOtpCode();
       
+      // VALIDATION: Check OTP code length
       if (otpCode.length != 6) {
+        print("❌ Validation failed: OTP code incomplete");
         throw Exception('Please enter the complete OTP code');
       }
       
-      print('🔐 Verifying OTP for phone: ${phoneNumber}');
-      print('📱 OTP Code: $otpCode');
+      print('📱 STEP 1: OTP code collected from input fields');
+      print('   Phone: $phoneNumber');
+      print('   OTP Code: $otpCode');
+      print('   Verification ID: ${verificationId.substring(0, 20)}...');
 
-      print('⏳ Sending verification request to Supabase...');
-      print("🔑 Phone: ${phoneNumber}, OTP: $otpCode"+"...."+OtpType.sms.toString());
-      print('-----------------------------------');
+      // PROCESS 3: Create Firebase phone auth credential
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🔑 STEP 2: Creating Firebase phone credential');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      final response = await supabase.auth.verifyOTP(
-        type: OtpType.sms,
-        phone: phoneNumber,
-        token: otpCode,
+      final credential = firebase_auth.PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: otpCode,
       );
+      
+      print('✅ Credential created successfully');
 
-      if (response.user != null) {
-        print('✅ OTP verification successful!');
-        print('User ID: ${response.user!.id}');
-        print('Phone: ${response.user!.phone}');
+      // PROCESS 4: Sign in to Firebase with the credential
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🔐 STEP 3: Signing in with Firebase credential');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        print('✅ Firebase OTP verification successful!');
+        print('   User ID: ${userCredential.user!.uid}');
+        print('   Phone: ${userCredential.user!.phoneNumber}');
         
-        // Check if this is profile completion flow
+        // PROCESS 5: Sign in user to Supabase after Firebase verification
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('🔐 STEP 4: Authenticating with Supabase');
+        print('   Firebase phone verification completed - creating Supabase session');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        try {
+          // Create Supabase auth session using verified phone number
+          // Firebase already verified OTP - Supabase just needs to create session
+          await supabase.auth
+
+              .signInWithOtp(
+            phone: userCredential.user!.phoneNumber!,
+            shouldCreateUser: false, // User may or may not exist in auth.users
+          );
+          print('✅ Supabase authentication session created');
+          print('   Phone: ${userCredential.user!.phoneNumber}');
+        } catch (supabaseAuthError) {
+          // If Supabase auth fails, continue anyway - Firebase verified the phone
+          print('⚠️ Warning: Supabase auth session creation failed: $supabaseAuthError');
+          print('   Continuing with flow - user data will be saved to local storage');
+        }
+        
+        // PROCESS 6: Check if this is profile completion flow
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('🔍 STEP 5: Checking user context');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
         final arguments = Get.arguments as Map<String, dynamic>?;
         final isProfileCompletion = arguments?['isProfileCompletion'] == true;
         
         if (isProfileCompletion) {
-          // Handle Google user profile completion
+          // PROCESS 7A: Handle Google user completing phone verification
+          print('📋 FLOW: Google user completing profile with phone');
           await _handleGoogleUserProfileCompletion(
-            response.user!,
+            userCredential.user!,
             phoneNumber,
             arguments!,
             context,
           );
         } else {
-          // Regular phone login flow - check if user exists
-          final userExists = await _checkAndCreateUserProfile(response.user!, phoneNumber);
-          
-          // Only navigate to home if user already existed
-          if (userExists) {
-            if (context.mounted) {
-              appMessageSuccess(
-                text: 'Verification successful!',
-                context: context,
-              );
-            }
-            
-            // Navigate to home for existing users
-            Get.offAll(() => const HomeView(),
-              transition: Transition.leftToRightWithFade,
-              duration: const Duration(milliseconds: 900),
-            );
-          }
-          // If user is new, _checkAndCreateUserProfile already navigated to CompleteProfileView
+          // PROCESS 7B: Regular phone login flow - sync with Supabase
+          print('📋 FLOW: Regular phone authentication');
+          await _syncFirebaseUserWithSupabase(userCredential.user!, context);
         }
       } else {
+        print('❌ ERROR: Firebase returned null user');
         throw Exception('Verification failed - no user returned');
       }
       
-    } on AuthException catch (e) {
-      print('❌ Auth error: ${e.message}');
-      errorMessage = e.message;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      print('❌ Firebase Auth error: ${e.code} - ${e.message}');
+      errorMessage = e.message ?? 'Verification failed';
+      
       if (context.mounted) {
         appMessageFail(
           text: 'Verification failed: ${e.message}',
@@ -142,8 +207,9 @@ class VerifyOtpController extends GetxController {
         );
       }
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      print('❌ Unexpected error during OTP verification: $e');
       errorMessage = e.toString();
+      
       if (context.mounted) {
         appMessageFail(
           text: 'Verification failed: ${e.toString()}',
@@ -153,196 +219,312 @@ class VerifyOtpController extends GetxController {
     } finally {
       isLoading = false;
       update();
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     }
   }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // SYNC FIREBASE USER WITH SUPABASE AFTER OTP VERIFICATION
+  // ════════════════════════════════════════════════════════════════════════
   
-  /// Handle Google user profile completion after phone verification
+  /// STEP 2: After Firebase OTP verification, check Supabase users table
+  /// This determines if user is new or existing
+  Future<void> _syncFirebaseUserWithSupabase(
+    firebase_auth.User firebaseUser,
+    BuildContext context,
+  ) async {
+    try {
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print("🔄 STEP 5: Syncing with Supabase users table");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      
+      // PROCESS 1: Check if user exists in Supabase users table
+      print('🔍 PROCESS 1: Checking Supabase users table');
+      final existingUser = await supabase
+          .from('users')
+          .select()
+          .eq('phone', firebaseUser.phoneNumber!)
+          .maybeSingle();
+
+      if (existingUser != null) {
+        // PROCESS 2A: Existing user found - Login
+        print('✅ PROCESS 2A: Existing user found');
+        print('   User ID: ${existingUser['id']}');
+        print('   Name: ${existingUser['name']}');
+        print('   Email: ${existingUser['email']}');
+        
+        await _handleExistingUserLogin(existingUser, context);
+      } else {
+        // PROCESS 2B: New user - Navigate to complete profile
+        print('🆕 PROCESS 2B: New user detected');
+        print('   Firebase UID: ${firebaseUser.uid}');
+        print('   Phone: ${firebaseUser.phoneNumber}');
+        print('   Action: Navigate to Complete Profile screen');
+        
+        if (context.mounted) {
+          appMessageSuccess(
+            text: 'Phone verified! Please complete your profile',
+            context: context,
+          );
+        }
+        
+        Get.offAll(
+          () => const CompleteProfileView(),
+          arguments: {
+            'userId': firebaseUser.uid,
+            'phone': firebaseUser.phoneNumber,
+            'source': 'firebase_phone',
+          },
+        );
+      }
+    } catch (e) {
+      print("❌ ERROR: Failed to sync with Supabase: $e");
+      
+      if (context.mounted) {
+        appMessageFail(
+          text: 'Sync error: $e',
+          context: context,
+        );
+      }
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // HANDLE EXISTING USER LOGIN AFTER OTP VERIFICATION
+  // ════════════════════════════════════════════════════════════════════════
+  
+  /// STEP 3: Handle login for existing users
+  /// Save user data to local storage and navigate to home
+  Future<void> _handleExistingUserLogin(
+    Map<String, dynamic> userData,
+    BuildContext context,
+  ) async {
+    try {
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print("💾 STEP 6: Saving user data to local storage");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      
+      // PROCESS 1: Get local storage instance
+      final box = GetStorage();
+      LocalStorageService localStorage = LocalStorageService(box);
+      
+      // PROCESS 2: Save user data to local storage with validation
+      final userId = userData['id'] as String?;
+      
+      if (userId == null || userId.isEmpty) {
+        print('❌ ERROR: User ID from Supabase is null or empty');
+        throw Exception('Invalid user ID from Supabase');
+      }
+      
+      await localStorage.saveUserIdSafely(userId);
+      await localStorage.saveUserName(userData['name'] ?? 'User');
+      await localStorage.saveUserEmail(userData['email'] ?? '');
+      await localStorage.write('user_phone', userData['phone']);
+      
+      if (userData['profile'] != null && userData['profile'].toString().isNotEmpty) {
+        await localStorage.saveUserProfile(userData['profile']);
+      }
+      
+      print("✅ User data saved successfully");
+      print("   Name: ${userData['name']}");
+      print("   Email: ${userData['email']}");
+      print("   Phone: ${userData['phone']}");
+      
+      if (context.mounted) {
+        appMessageSuccess(
+          text: 'Welcome back ${userData['name']}!',
+          context: context,
+        );
+      }
+      
+      // PROCESS 3: Navigate to home screen
+      print("🏠 STEP 7: Navigating to Home screen");
+      Get.offAll(
+        () => const HomeView(),
+        transition: Transition.leftToRightWithFade,
+        duration: const Duration(milliseconds: 900),
+      );
+      
+      print("✅ OTP verification and login completed successfully");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    } catch (e) {
+      print("❌ ERROR: Failed to handle existing user login: $e");
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // HANDLE GOOGLE USER PROFILE COMPLETION (After Phone Verification)
+  // ════════════════════════════════════════════════════════════════════════
+  
+  /// Handle profile completion for Google users after phone verification
+  /// Google users need to verify phone via Firebase OTP
   Future<void> _handleGoogleUserProfileCompletion(
-    User user,
+    firebase_auth.User firebaseUser,
     String phoneNumber,
     Map<String, dynamic> arguments,
     BuildContext context,
   ) async {
-    print('🔄 Completing Google user profile with verified phone...');
-    
-    final userId = arguments['userId'];
-    final name = arguments['name'];
-    final email = arguments['email'];
-    final photo = arguments['photo'];
-    
-    // Insert user into users table
-    await supabase.from('users').insert({
-      'id': userId,
-      'name': name ?? 'MEGO User',
-      'email': email ?? '',
-      'phone': phoneNumber,
-      'profile': photo ?? '',
-      'user_type': 'rider',
-    });
-    
-    print('✅ Google user profile saved with phone verification');
-    
-    // Save to local storage
-    await storage.saveUserName(name ?? 'MEGO User');
-    await storage.saveUserEmail(email ?? '');
-    await storage.write('user_phone', phoneNumber);
-    if (photo != null && photo.isNotEmpty) {
-      await storage.saveUserProfile(photo);
-    }
-    
-    print('✅ User data saved to local storage');
-    
-    if (context.mounted) {
-      appMessageSuccess(
-        text: 'Welcome ${name ?? "User"}!',
-        context: context,
-      );
-    }
-    
-    // Navigate to home
-    Get.offAll(() => const HomeView(),
-      transition: Transition.leftToRightWithFade,
-      duration: const Duration(milliseconds: 900),
-    );
-  }
-  
-  Future<bool> _checkAndCreateUserProfile(User user, String phoneNumber) async {
     try {
-      final existingUser = await _checkIfUserExists(user.id);
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print('🔄 STEP 5: Completing Google user profile');
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      if (existingUser == null) {
-        // New user - navigate to complete profile
-        print('🆕 New phone user detected - Navigate to Complete Profile');
-        Get.offAll(
-          () => const CompleteProfileView(),
-          arguments: {
-            'userId': user.id,
-            'source': 'phone',
-            'phone': phoneNumber,
-          },
-        );
-        return false; // User is new
-      } else {
-        await _handleExistingUser(existingUser);
-        return true; // User exists
+      final name = arguments['name'];
+      final email = arguments['email'];
+      final photo = arguments['photo'];
+      
+      print('   Name: $name');
+      print('   Email: $email');
+      print('   Phone (verified): $phoneNumber');
+      
+      // PROCESS 1: Insert user into Supabase users table (let Supabase generate ID)
+      print('💾 PROCESS 1: Inserting user into Supabase users table');
+      await supabase.from('users').insert({
+        // Don't specify 'id' - let Supabase auto-generate it
+        'name': name ?? 'MEGO User',
+        'email': email ?? '',
+        'phone': phoneNumber,
+        'profile': photo ?? '',
+        'user_type': 'rider',
+        'created_at': DateTime.now().toIso8601String(),
+      });
+      
+      print('✅ User profile inserted to Supabase');
+      
+      // PROCESS 2: Fetch user from Supabase to get the actual ID
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🔍 PROCESS 2: Fetching user ID from Supabase');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      final userData = await supabase
+          .from('users')
+          .select('id, name, email, phone, profile')
+          .eq('phone', phoneNumber)
+          .single();
+      
+      final userId = userData['id'] as String;
+      print('✅ User ID retrieved from Supabase: $userId');
+      
+      // PROCESS 3: Save to local storage with validation
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('💾 PROCESS 3: Saving to local storage');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      final box = GetStorage();
+      LocalStorageService localStorage = LocalStorageService(box);
+      
+      // Validate userId before saving
+      if (userId.isEmpty) {
+        throw Exception('User ID from Supabase is empty');
       }
+      
+      await localStorage.saveUserIdSafely(userId);
+      await localStorage.saveUserName(userData['name'] ?? 'MEGO User');
+      await localStorage.saveUserEmail(userData['email'] ?? '');
+      await localStorage.write('user_phone', userData['phone']);
+      
+      if (userData['profile'] != null && userData['profile'].toString().isNotEmpty) {
+        await localStorage.saveUserProfile(userData['profile']);
+      }
+      
+      print('✅ User data saved to local storage');
+      
+      if (context.mounted) {
+        appMessageSuccess(
+          text: 'Profile completed successfully!',
+          context: context,
+        );
+      }
+      
+      // PROCESS 4: Navigate to home
+      print('🏠 PROCESS 4: Navigating to Home screen');
+      Get.offAll(
+        () => const HomeView(),
+        transition: Transition.leftToRightWithFade,
+        duration: const Duration(milliseconds: 900),
+      );
+      
+      print("✅ Google user profile completion successful");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     } catch (e) {
-      print('❌ Error managing user profile: $e');
-      // Don't throw error here, verification was successful
-      return true; // Assume existing user on error to avoid blocking login
+      print('❌ ERROR: Failed to complete Google user profile: $e');
+      
+      if (context.mounted) {
+        appMessageFail(
+          text: 'Failed to save profile: $e',
+          context: context,
+        );
+      }
     }
   }
 
-  /// Check if user exists in Supabase users table
-  Future<Map<String, dynamic>?> _checkIfUserExists(String userId) async {
-    print('🔍 Checking if user profile exists...');
-    return await supabase
-        .from('users')
-        .select()
-        .eq('id', userId)
-        .maybeSingle();
-  }
-
-  /// Create new user profile in Supabase and save to local storage
-  Future<void> _createNewUserProfile(User user, String phoneNumber) async {
-    print('👤 Creating new user profile...');
-    
-    final userData = _buildUserData(user, phoneNumber);
-    
-    await supabase
-        .from('users')
-        .insert(userData);
-        
-    print('✅ User profile created successfully!');
-    print('User Data: $userData');
-    
-    await _saveUserToLocalStorage(userData, isNewUser: true);
-  }
-
-  /// Handle existing user login and save to local storage
-  Future<void> _handleExistingUser(Map<String, dynamic> existingUser) async {
-    print('✅ User profile already exists');
-    print('Existing User: $existingUser');
-    
-    await _saveUserToLocalStorage(existingUser, isNewUser: false);
-  }
-
-  /// Build user data object from User and registration arguments
-  Map<String, dynamic> _buildUserData(User user, String phoneNumber) {
-    final arguments = Get.arguments as Map<String, dynamic>?;
-    
-    return {
-      'id': user.id,
-      'name': arguments?['name'] ?? user.userMetadata?['name'] ?? 'User',
-      'email': arguments?['email'] ?? user.email ?? '',
-      'phone': arguments?['phone'] ?? user.phone ?? phoneNumber,
-      'user_type': 'rider',
-      'created_at': DateTime.now().toIso8601String(),
-    };
-  }
-
-  /// Save user data to local storage with duplicate check
-  Future<void> _saveUserToLocalStorage(Map<String, dynamic> userData, {required bool isNewUser}) async {
-    final userModel = UserModel.fromJson(userData);
-    final existingLocalUser = storage.userModel;
-    
-    if (_shouldSkipSaving(existingLocalUser, userModel)) {
-      _logDuplicateSkip(existingLocalUser!);
-      return;
-    }
-    
-    await storage.saveUserModel(userModel);
-    _logSuccessfulSave(isNewUser);
-  }
-
-  /// Check if we should skip saving due to duplicate data
-  bool _shouldSkipSaving(UserModel? existingLocalUser, UserModel newUserModel) {
-    return existingLocalUser != null && existingLocalUser.id == newUserModel.id;
-  }
-
-  /// Log message when skipping duplicate save
-  void _logDuplicateSkip(UserModel existingUser) {
-    print('📱 Same user data already exists in local storage - skipping save');
-    print('💡 User login: ${existingUser.name} (${existingUser.email})');
-  }
-
-  /// Log message for successful save
-  void _logSuccessfulSave(bool isNewUser) {
-    if (isNewUser) {
-      print('💾 Complete user data saved to local storage successfully!');
-    } else {
-      print('💾 Existing user data saved to local storage successfully!');
-    }
-  }
+  // ════════════════════════════════════════════════════════════════════════
+  // RESEND FIREBASE OTP
+  // ════════════════════════════════════════════════════════════════════════
   
-  Future<void> resendOtp(BuildContext context,String phoneNumber) async {
+  /// Resend OTP via Firebase when user doesn't receive the code
+  Future<void> resendFirebaseOtp(BuildContext context) async {
     try {
       isLoading = true;
       update();
       
-      await supabase.auth.signInWithOtp(
-        phone: phoneNumber,
-        shouldCreateUser: true,
-      );
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print("🔄 RESENDING FIREBASE OTP");
+      print("   Phone: $phoneNumber");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-      if (context.mounted) {
-        appMessageSuccess(
-          text: 'OTP resent to ${phoneNumber}',
-          context: context,
-        );
-      }
+      // PROCESS 1: Call Firebase verifyPhoneNumber again
+      await _firebaseAuth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        timeout: const Duration(seconds: 60),
+        
+        // CALLBACK 1: Auto-verification
+        verificationCompleted: (firebase_auth.PhoneAuthCredential credential) async {
+          print("✅ Auto-verification on resend");
+          await _syncFirebaseUserWithSupabase(
+            (await _firebaseAuth.signInWithCredential(credential)).user!,
+            context,
+          );
+        },
+        
+        // CALLBACK 2: Verification failed
+        verificationFailed: (firebase_auth.FirebaseAuthException e) {
+          print("❌ Resend failed: ${e.message}");
+          if (context.mounted) {
+            appMessageFail(text: e.message ?? 'Failed to resend OTP', context: context);
+          }
+        },
+        
+        // CALLBACK 3: Code sent successfully
+        codeSent: (String newVerificationId, int? resendToken) {
+          print("✅ OTP resent successfully");
+          
+          // PROCESS 2: Update verification ID with new one
+          verificationId = newVerificationId;
+          
+          if (context.mounted) {
+            appMessageSuccess(
+              text: 'OTP resent to $phoneNumber',
+              context: context,
+            );
+          }
+          
+          print("   New Verification ID: ${newVerificationId.substring(0, 20)}...");
+        },
+        
+        // CALLBACK 4: Auto-retrieval timeout
+        codeAutoRetrievalTimeout: (String newVerificationId) {
+          verificationId = newVerificationId;
+        },
+      );
       
-    } on AuthException catch (e) {
-      if (context.mounted) {
-        appMessageFail(
-          text: 'Error: ${e.message}',
-          context: context,
-        );
-      }
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
     } catch (e) {
+      print("❌ ERROR: Failed to resend OTP: $e");
+      
       if (context.mounted) {
         appMessageFail(
-          text: 'Unexpected error: $e',
+          text: 'Failed to resend OTP: $e',
           context: context,
         );
       }

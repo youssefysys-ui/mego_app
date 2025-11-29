@@ -85,12 +85,12 @@ class HomeController extends GetxController {
       final localDb = LocalStorageService(GetStorage());
       final userModel = localDb.userModel;
 
-      if (userModel == null) {
-        print('❌ No user found in local storage');
-        return;
-      }
+      // if (userModel == null) {
+      //   print('❌ No user found in local storage');
+      //   return;
+      // }
 
-      final currentUserId = userModel.id;
+      final currentUserId =localDb.userId.toString();
       print('🔍 Fetching dropoff locations for user: $currentUserId');
 
       // Get Supabase client

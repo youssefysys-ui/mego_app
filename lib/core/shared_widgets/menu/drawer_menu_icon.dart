@@ -39,8 +39,8 @@ class DrawerMenuIcon extends StatelessWidget {
              child: Center(
                child: SvgPicture.asset(
                  AppImages.drIcon,
-                 width: 54,
-                 height: 74,
+                 width: 61,
+                 height: 223,
                ),
              ),
            ),

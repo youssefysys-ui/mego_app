@@ -2,16 +2,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import 'package:mego_app/features/auth/login/views/login_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/local_db/local_db.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -139,17 +139,37 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _navigateToNextScreen() async {
-    final session = Supabase.instance.client.auth.currentSession;
-
-    if (session != null) {
+    // ════════════════════════════════════════════════════════════════════════
+    // CHECK LOCAL STORAGE FOR USER DATA (Not Supabase Session)
+    // ════════════════════════════════════════════════════════════════════════
+    
+    // PROCESS 1: Get local storage instance
+    final localStorage = GetIt.instance<LocalStorageService>();
+    // PROCESS 2: Check if user data exists in local_db
+    final userName = localStorage.userName;
+    final userEmail = localStorage.userEmail;
+    
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    print("🔍 SPLASH SCREEN: Checking authentication");
+    print("   User Name: ${userName ?? 'Not found'}");
+    print("   User Email: ${userEmail ?? 'Not found'}");
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    // PROCESS 3: Determine navigation based on local storage data
+    if (userName != null && userName.isNotEmpty && 
+        userEmail != null && userEmail.isNotEmpty) {
+      // User data exists in local_db → Navigate to Home
+      print("✅ User authenticated (local_db) → Home");
       Get.offAll(
-            () => const HomeView(),
+        () => const HomeView(),
         transition: Transition.fadeIn,
         duration: const Duration(milliseconds: 500),
       );
     } else {
+      // No user data in local_db → Navigate to Login
+      print("❌ No user data (local_db) → Login");
       Get.offAll(
-            () => LoginView(),
+        () => LoginView(),
         transition: Transition.fadeIn,
         duration: const Duration(milliseconds: 500),
       );

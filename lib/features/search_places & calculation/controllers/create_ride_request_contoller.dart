@@ -1,7 +1,9 @@
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mego_app/core/shared_models/models.dart';
+import '../../../core/local_db/local_db.dart';
 import '../../../core/shared_models/user_ride_data.dart';
 import 'est_services_controller.dart';
 
@@ -29,7 +31,12 @@ class CreateRideRequestController extends GetxController {
 
     try {
       final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+
+      // PROCESS 1: Get local storage instance
+      final localStorage = GetIt.instance<LocalStorageService>();
+      final userId = localStorage.userId;
+
+
 
       if (userId == null) {
         errorMessage.value = 'Please login to create a ride request';

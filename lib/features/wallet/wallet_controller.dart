@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/res/app_strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/local_db/local_db.dart';
 import 'wallet_model.dart';
 
 class WalletController extends GetxController {
@@ -10,18 +12,27 @@ class WalletController extends GetxController {
   final RxList<WalletTransactionModel> transactions = <WalletTransactionModel>[].obs;
 
   late final SupabaseClient _supabase;
-  String? get currentUserId => _supabase.auth.currentUser?.id;
+
+
+
+
+  final localStorage = GetIt.instance<LocalStorageService>();
+  String   userId ='';
+
+ // = localStorage.userId;
 
   @override
   void onInit() {
     super.onInit();
     _supabase = Supabase.instance.client;
+    userId = localStorage.userId.toString();
     loadWallet();
   }
 
   /// Load user wallet - create with 100 EUR if doesn't exist
   Future<void> loadWallet() async {
-    if (currentUserId == null) {
+
+    if (userId == 'null') {
       errorMessage.value = 'Please login to view your wallet';
       print('⚠️ No current user ID found');
       return;
@@ -31,13 +42,13 @@ class WalletController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      print('🔍 Fetching wallet for user: $currentUserId');
+      print('🔍 Fetching wallet for user: $userId');
 
       // Try to fetch existing wallet
       final response = await _supabase
           .from('wallet')
           .select()
-          .eq('user_id', currentUserId!)
+          .eq('user_id', userId)
           .maybeSingle();
 
       if (response != null) {
@@ -64,9 +75,10 @@ class WalletController extends GetxController {
 
   /// Create new wallet with initial 100 EUR balance
   Future<void> _createWallet() async {
+
     try {
       final walletData = {
-        'user_id': currentUserId,
+        'user_id':userId,
         'total': 100.0,
       };
 

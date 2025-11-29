@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/mego_client_app.iml" filepath="$PROJECT_DIR$/mego_client_app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/mego_client_app_android.iml" filepath="$PROJECT_DIR$/android/mego_client_app_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android1/mego_client_app_android.iml" filepath="$PROJECT_DIR$/android1/mego_client_app_android.iml" />
     </modules>
   </component>
 </project>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1057585249956",
+    "project_id": "mego-c43a7",
+    "storage_bucket": "mego-c43a7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1057585249956:android:60384967af66b53cc0f031",
+        "android_client_info": {
+          "package_name": "com.megoClients.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEZfO1F3z619ZDdOzy7pPuWMI-SpYBF0Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

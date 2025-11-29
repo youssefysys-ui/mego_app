@@ -3,12 +3,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
+import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/confirm_ride/confirm_ride_view.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/est_services_controller.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/search_places_controller.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/local_db/local_db.dart';
 import 'coupon_discount_widget.dart';
 
 class ConfirmButton extends StatelessWidget {
@@ -252,6 +256,8 @@ class ConfirmButton extends StatelessWidget {
   }
 
    Future<void> _confirmRide() async {
+     final localStorage = GetIt.instance<LocalStorageService>();
+     final userId = localStorage.userId;
     if (controller.selectedFromPlace == null || controller.selectedToPlace == null) {
       Get.snackbar(
         'Error',
@@ -262,16 +268,18 @@ class ConfirmButton extends StatelessWidget {
     }
 
     try {
-      // Get current user ID
-      final userId = controller.getCurrentUserId();
-      if (userId == null) {
-        Get.snackbar(
-          'Error',
-          'Please login to continue',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+
+
+      // PROCESS 2: Check if user data exists in local_db
+      final userEmail = localStorage.userEmail;
+      print("User Email: $userEmail");
+      print("User Email:"+localStorage.userId.toString());
+
+
+      //controller.getCurrentUserId();
+      if (userEmail == null) {
+        appMessageFail(text: 'Please login to continue', context: Get.context!);
+
         return;
       }
 
@@ -293,10 +301,9 @@ class ConfirmButton extends StatelessWidget {
         controller.selectedToPlace!.latitude,
         controller.selectedToPlace!.longitude,
       );
-
       // Create UserRideData with calculated estimated price and time
       UserRideData userRideData = UserRideData(
-        userId: userId,
+        userId: userId.toString(),
         latFrom: controller.selectedFromPlace!.latitude,
         latTo: controller.selectedToPlace!.latitude,
         lngFrom: controller.selectedFromPlace!.longitude,

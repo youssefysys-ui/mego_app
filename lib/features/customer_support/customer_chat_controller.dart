@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
+import '../../core/local_db/local_db.dart';
 import '../../core/shared_models/chat_model.dart';
 
 class CustomerChatController extends GetxController {
@@ -15,11 +18,15 @@ class CustomerChatController extends GetxController {
   // Supabase client and channel
   late final SupabaseClient _supabase;
   RealtimeChannel? _chatChannel;
-  
-  String? get currentUserId => _supabase.auth.currentUser?.id;
-  
+
+  final localStorage = GetIt.instance<LocalStorageService>();
+
+  // PROCESS 2: Check if user data exists in local_db
+  String userId='';
+
   @override
   void onInit() {
+    userId= localStorage.userId.toString();
     super.onInit();
     _supabase = Supabase.instance.client;
     _initializeChat();
@@ -86,17 +93,14 @@ class CustomerChatController extends GetxController {
   
   /// Send a new message
   Future<void> sendMessage() async {
+
     if (messageController.text.trim().isEmpty) {
       return;
     }
     
-    if (currentUserId == null) {
-      Get.snackbar(
-        'Error',
-        'You must be logged in to send messages',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+    if (userId == null) {
+      appMessageFail(text: 'You must be logged in to send messages', context: Get.context!);
+
       return;
     }
     
@@ -104,7 +108,7 @@ class CustomerChatController extends GetxController {
       isSending.value = true;
       
       final messageData = {
-        'user_id': currentUserId,
+        'user_id':userId,
         'message': messageController.text.trim(),
       };
       
@@ -116,12 +120,8 @@ class CustomerChatController extends GetxController {
       messageController.clear();
       
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to send message: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print("Error sending message: $e");
+
     } finally {
       isSending.value = false;
     }
@@ -161,7 +161,7 @@ class CustomerChatController extends GetxController {
   
   /// Check if message is from current user
   bool isMyMessage(ChatMessage message) {
-    return message.userId == currentUserId;
+    return message.userId == userId;
   }
   
   @override

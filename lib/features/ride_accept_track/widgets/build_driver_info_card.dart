@@ -1,11 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/shared_models/ride_model.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_widgets/driver_info_card.dart';
 import 'package:mego_app/core/shared_widgets/payment_card_widget.dart';
+import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/ride_accept_track/controllers/rider_accept_track_controller.dart';
 
 class BuildDriverInfoCard extends StatelessWidget {
@@ -159,7 +161,10 @@ class BuildDriverInfoCard extends StatelessWidget {
         // Call Button
         Expanded(
           child: ElevatedButton(
-            onPressed: controller.callDriver,
+            onPressed: (){
+              appMessageSuccess(text: 'call driver available soon ', context: Get.context!);
+            },
+            //controller.callDriver,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               foregroundColor: AppColors.primaryColor,
@@ -199,7 +204,10 @@ class BuildDriverInfoCard extends StatelessWidget {
         // Message Button
         Expanded(
           child: ElevatedButton(
-            onPressed: controller.messageDriver,
+            onPressed: (){
+              appMessageSuccess(text: 'chat available soon ', context: Get.context!);
+            },
+            //controller.messageDriver,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               foregroundColor: AppColors.primaryColor,
@@ -288,31 +296,31 @@ class BuildDriverInfoCard extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // Stop Simulation Button
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: controller.stopSimulation,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.buttonColor,
-                side: const BorderSide(
-                  color: AppColors.buttonColor,
-                  width: 1.5,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text(
-                'Stop Simulation',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
+          // // Stop Simulation Button
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: OutlinedButton(
+          //     onPressed: controller.stopSimulation,
+          //     style: OutlinedButton.styleFrom(
+          //       foregroundColor: AppColors.buttonColor,
+          //       side: const BorderSide(
+          //         color: AppColors.buttonColor,
+          //         width: 1.5,
+          //       ),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(8),
+          //       ),
+          //       padding: const EdgeInsets.symmetric(vertical: 12),
+          //     ),
+          //     child: const Text(
+          //       'Stop Simulation',
+          //       style: TextStyle(
+          //         fontWeight: FontWeight.w600,
+          //         fontSize: 14,
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

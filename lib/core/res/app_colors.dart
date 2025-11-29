@@ -6,6 +6,7 @@ class AppColors {
 
   // Main App Theme Colors
   static const Color primaryColor = Color(0xff6B0F1A);
+  static const Color drawerColor = Color(0xff33070C);
   static Color backgroundColor = Color(0xffF5EFE6);
   static const Color appBarColor = Color(0xff6B0F1A);
   static const Color appSurfaceColor = Color(0xff5A1E3D);
@@ -19,6 +20,7 @@ class AppColors {
 
   // Component Colors
   static const Color buttonColor = Color(0xffFFC947);
+  //#FFC947
   static const Color cardColor = Colors.white;
   static const Color iconColor = Color(0xff5A1E3D);
 

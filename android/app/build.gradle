@@ -1,0 +1,64 @@
+plugins {
+    id "com.android.application"
+    id "com.google.gms.google-services"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+
+}
+
+android {
+    namespace = "com.megoClients.app" // Namespace for your app
+    compileSdk = 35
+    ndkVersion = flutter.ndkVersion
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true // Enable desugaring
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.megoClients.app"
+        minSdk = 23
+        targetSdk = 35
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+            // Disable code shrinking for now to avoid shrinker issues
+            shrinkResources false
+            minifyEnabled false
+        }
+        debug {
+            shrinkResources false
+            minifyEnabled false
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+    // Add Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+
+    // Add AppCompat dependency
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    // Add core library desugaring dependency (latest version)
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+
+    // Add Kotlin standard library (to match Kotlin 2.1.0)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.1.10"
+    // Add other dependencies as needed
+}

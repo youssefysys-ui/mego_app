@@ -19,6 +19,7 @@ class LocalStorageService {
 
   // --------- Convenient shortcuts for common keys ---------
   static const _authTokenKey = 'auth_token';
+  static const _userIdKey = 'user_id';
   static const _email = 'user_email';
   static const _name = 'user_name';
   static const _userModelKey = 'user_model';
@@ -49,6 +50,7 @@ class LocalStorageService {
 
 //read
   String? get authToken => read<String>(_authTokenKey);
+  String? get userId => read<String>(_userIdKey);
   String? get userEmail => read<String>(_email);
   String? get userName => read<String>(_name);
   
@@ -84,8 +86,21 @@ class LocalStorageService {
 
 //write
   Future<void> saveAuthToken(String token) async => await write(_authTokenKey, token);
+  Future<void> saveUserId(String userId) async => await write(_userIdKey, userId);
   Future<void> saveUserName(String name) async => await write(_name, name);
   Future<void> saveUserEmail(String email) async => await write(_email, email);
+  
+  /// Validate and save user ID with strict checks
+  /// Throws exception if userId is null or empty
+  Future<void> saveUserIdSafely(String? userId) async {
+    if (userId == null || userId.isEmpty) {
+      print('❌ ERROR: Cannot save null or empty user ID');
+      throw Exception('User ID is required and cannot be empty');
+    }
+    
+    await saveUserId(userId);
+    print('✅ User ID saved successfully: $userId');
+  }
   
   /// Save complete user model to storage
   Future<void> saveUserModel(UserModel user) async {
@@ -114,6 +129,141 @@ class LocalStorageService {
   
   // Coupon write method
   Future<void> saveSelectedCoupon(Map<String, dynamic> coupon) async => await write(_selectedCouponKey, coupon);
+  
+  // ════════════════════════════════════════════════════════════════════════
+  // COUPON VALIDATION & ACTIVATION CHECK
+  // ════════════════════════════════════════════════════════════════════════
+  
+  /// Check if a valid coupon exists in local storage and return it
+  /// Returns null if no coupon exists, is expired, or is inactive
+  Map<String, dynamic>? getValidActiveCoupon() {
+    try {
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print("🎫 CHECKING COUPON IN LOCAL_DB");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      
+      // STEP 1: Get coupon from local storage
+      final couponData = selectedCoupon;
+      
+      if (couponData == null) {
+        print("❌ No coupon found in local_db");
+        return null;
+      }
+      
+      print("✅ Coupon found in local_db");
+      print("   ID: ${couponData['id']}");
+      print("   Type: ${couponData['type']}");
+      
+      // STEP 2: Check if coupon is active
+      final isActive = couponData['active'] as bool? ?? false;
+      
+      if (!isActive) {
+        print("❌ Coupon is INACTIVE");
+        print("   Removing inactive coupon from local_db");
+        deleteSelectedCoupon();
+        return null;
+      }
+      
+      print("✅ Coupon is ACTIVE");
+      
+      // STEP 3: Check if coupon is expired
+      final validUntilStr = couponData['valid_until'] as String?;
+      
+      if (validUntilStr == null) {
+        print("❌ Coupon has no expiration date");
+        deleteSelectedCoupon();
+        return null;
+      }
+      
+      final validUntil = DateTime.parse(validUntilStr);
+      final now = DateTime.now();
+      
+      if (now.isAfter(validUntil)) {
+        print("❌ Coupon is EXPIRED");
+        print("   Valid Until: $validUntil");
+        print("   Current Time: $now");
+        print("   Removing expired coupon from local_db");
+        deleteSelectedCoupon();
+        return null;
+      }
+      
+      final remainingTime = validUntil.difference(now);
+      print("✅ Coupon is NOT EXPIRED");
+      print("   Valid Until: $validUntil");
+      print("   Remaining Time: ${remainingTime.inHours} hours");
+      
+      // STEP 4: Coupon is valid and active
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      print("🎉 COUPON IS VALID AND ACTIVE");
+      print("   Can be applied to the current transaction");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+      
+      return couponData;
+      
+    } catch (e) {
+      print("❌ ERROR checking coupon: $e");
+      print("   Removing invalid coupon from local_db");
+      deleteSelectedCoupon();
+      return null;
+    }
+  }
+  
+  /// Check if user has an active, valid coupon
+  bool hasValidCoupon() {
+    final coupon = getValidActiveCoupon();
+    return coupon != null;
+  }
+  
+  /// Get coupon discount percentage or amount
+  /// Returns 0 if no valid coupon exists
+  double getCouponDiscountValue() {
+    try {
+      final coupon = getValidActiveCoupon();
+      
+      if (coupon == null) {
+        return 0.0;
+      }
+      
+      final type = coupon['type'] as String;
+      
+      // Parse discount from coupon type
+      // Example types: "10_PERCENT", "FREE_RIDE", "50_PERCENT"
+      if (type.contains('PERCENT')) {
+        final percentStr = type.replaceAll('_PERCENT', '').replaceAll('PERCENT', '');
+        return double.tryParse(percentStr) ?? 0.0;
+      } else if (type == 'FREE_RIDE') {
+        return 100.0; // 100% discount
+      }
+      
+      return 0.0;
+    } catch (e) {
+      print("❌ ERROR getting coupon discount: $e");
+      return 0.0;
+    }
+  }
+  
+  /// Apply coupon discount to a price
+  /// Returns the discounted price
+  double applyCouponDiscount(double originalPrice) {
+    final discountPercent = getCouponDiscountValue();
+    
+    if (discountPercent <= 0) {
+      return originalPrice;
+    }
+    
+    final discountAmount = originalPrice * (discountPercent / 100);
+    final finalPrice = originalPrice - discountAmount;
+    
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    print("💰 APPLYING COUPON DISCOUNT");
+    print("   Original Price: \$${originalPrice.toStringAsFixed(2)}");
+    print("   Discount: ${discountPercent.toStringAsFixed(0)}%");
+    print("   Discount Amount: \$${discountAmount.toStringAsFixed(2)}");
+    print("   Final Price: \$${finalPrice.toStringAsFixed(2)}");
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    
+    return finalPrice;
+  }
   
   // Splash video write methods
   Future<void> saveSplashVideoShown(bool shown) async => await write(_splashVideoShownKey, shown);
@@ -240,20 +390,39 @@ class LocalStorageService {
            userName != 'user' && userName != 'المستخدم';
   }
   
-  /// Delete all user data (logout functionality)
+  // ════════════════════════════════════════════════════════════════════════
+  // LOGOUT & CLEAR ALL USER DATA
+  // ════════════════════════════════════════════════════════════════════════
+  
+  /// Delete user ID from local storage
+  Future<void> deleteUserId() async => await delete(_userIdKey);
+  
+  /// Delete all user authentication data (logout functionality)
   Future<void> deleteAllUserData() async {
     await deleteAuthToken();
+    await deleteUserId();
     await deleteUserName();
     await deleteUserEmail();
     await deleteUserModel();
+    await delete('user_phone');
+    await delete('user_profile');
+    print('✅ All user data deleted from local storage');
   }
   
   /// Complete logout - clears all user and app data
+  /// Call this when user logs out to reset everything
   Future<void> logout() async {
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    print("🗑️ LOCAL_DB: Starting complete logout cleanup");
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
     await deleteAllUserData();
     await deleteAllLocationData();  
     await deleteAllCategoryData();
+    
     // Keep language preference during logout
+    print("✅ LOCAL_DB: All user data cleared (language preserved)");
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
   }
   
   /// Get location distance between stored and new coordinates

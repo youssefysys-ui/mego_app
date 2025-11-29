@@ -1,5 +1,7 @@
+import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
+import '../../../core/local_db/local_db.dart';
 import '../../../core/shared_models/ride_model.dart';
 import '../../../core/shared_models/ride_request_model.dart';
 
@@ -31,12 +33,16 @@ class HistoryTripController extends GetxController {
   bool isLoading = false;
   String error = '';
 
-  // Get current user ID
-  String? get currentUserId => supabase.auth.currentUser?.id;
+
+
+  final localStorage = GetIt.instance<LocalStorageService>();
+  //   String   userId ='';
+
 
   /// Fetch all trips with ride request data for the current user
   Future<List<TripData>> getAllTripsWithRequestData() async {
-    if (currentUserId == null) {
+    String userId = localStorage.userId.toString();
+    if (userId == 'Null') {
       error = 'User not authenticated';
       update();
       return [];
@@ -51,7 +57,7 @@ class HistoryTripController extends GetxController {
       final response = await supabase
           .from('rides')
           .select('*, ride_requests!inner(*)')
-          .eq('rider_id', currentUserId!)
+          .eq('rider_id', userId)
           .order('created_at', ascending: false);
 
       final List<TripData> fetchedTrips = (response as List).map((json) {
@@ -78,7 +84,8 @@ class HistoryTripController extends GetxController {
 
   /// Fetch active trips (started or in_progress) with ride request data
   Future<List<TripData>> getActiveTripsWithRequestData() async {
-    if (currentUserId == null) {
+    String userId = localStorage.userId.toString();
+    if (userId == 'null') {
       error = 'User not authenticated';
       update();
       return [];
@@ -92,7 +99,7 @@ class HistoryTripController extends GetxController {
       final response = await supabase
           .from('rides')
           .select('*, ride_requests!inner(*)')
-          .eq('rider_id', currentUserId!)
+          .eq('rider_id', userId)
           .inFilter('status', [RideModel.statusStarted, RideModel.statusInProgress])
           .order('created_at', ascending: false);
 
@@ -119,7 +126,8 @@ class HistoryTripController extends GetxController {
 
   /// Fetch trip history (completed or cancelled) with ride request data
   Future<List<TripData>> getTripHistory() async {
-    if (currentUserId == null) {
+    String userId = localStorage.userId.toString();
+    if (userId == 'null') {
       error = 'User not authenticated';
       update();
       return [];
@@ -133,7 +141,7 @@ class HistoryTripController extends GetxController {
       final response = await supabase
           .from('rides')
           .select('*, ride_requests!inner(*)')
-          .eq('rider_id', currentUserId!)
+          .eq('rider_id', userId)
           .inFilter('status', [RideModel.statusCompleted, RideModel.statusCancelled])
           .order('created_at', ascending: false);
 

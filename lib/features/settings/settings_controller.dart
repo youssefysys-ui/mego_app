@@ -44,8 +44,13 @@ class SettingsController extends GetxController {
 
   /// Load user data from local storage
   void _loadUserData() {
+    final localStorage = GetIt.instance<LocalStorageService>();
+
+   // final userId= localStorage.userId;
+
     try {
-      userId = supabase.auth.currentUser?.id ?? '';
+      userId =localStorage.userId.toString();
+          //supabase.auth.currentUser?.id ?? '';
       currentName.value = localStorage.userName ?? 'User';
       currentEmail.value = localStorage.userEmail ?? '';
       currentPhone.value = localStorage.read<String>('user_phone') ?? '';

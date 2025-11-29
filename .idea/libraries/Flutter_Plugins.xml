@@ -49,6 +49,8 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/geolocator_apple-2.3.13" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/firebase_messaging_web-3.10.10" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/firebase_auth-5.7.0" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/firebase_auth_web-5.15.3" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -22,7 +22,6 @@ class AboutUsView extends StatelessWidget {
               padding: const EdgeInsets.only(left:28.0,right: 28),
               child: _buildLogoSection(),
             ),
-            
             // Main Content
             Padding(
               padding: const EdgeInsets.all(20),
@@ -258,7 +257,8 @@ class AboutUsView extends StatelessWidget {
           icon: AppImages.food,
           title: 'Food Delivery',
           description: 'Order from top-rated restaurants and enjoy delicious meals delivered fast and fresh to your location.',
-          gradient: [Colors.orange.shade700, Colors.orange.shade500],
+          gradient: [AppColors.buttonColor, AppColors.buttonColor],
+          //[Colors.orange.shade700, Colors.orange.shade500],
         ),
       ],
     );
@@ -309,11 +309,13 @@ class AboutUsView extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style:  TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color:
+                    (title!='Food Delivery')?
+                    Colors.white.withValues(alpha: 0.9):AppColors.txtColor,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -323,7 +325,9 @@ class AboutUsView extends StatelessWidget {
                     fontFamily: 'Roboto',
                     fontSize: 14,
                     height: 1.4,
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color:
+                    (title!='Food Delivery')?
+                    Colors.white.withValues(alpha: 0.9):AppColors.txtColor,
                   ),
                 ),
               ],
@@ -404,27 +408,28 @@ class AboutUsView extends StatelessWidget {
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
+          crossAxisSpacing: 10,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.3,
+          childAspectRatio: 1.2,
           children: [
             _buildFeatureCard(
-              icon: Icons.flash_on,
+              icon: AppImages.settingsIcon,
+              //Icons.flash_on,
               title: 'Fast Service',
               color: Colors.orange,
             ),
             _buildFeatureCard(
-              icon: Icons.verified_user,
+              icon: AppImages.safety,
               title: 'Safe & Secure',
               color: Colors.green,
             ),
             _buildFeatureCard(
-              icon: Icons.support_agent,
+              icon: AppImages.customerSupportIcon,
               title: '24/7 Support',
               color: Colors.blue,
             ),
             _buildFeatureCard(
-              icon: Icons.star,
+              icon: AppImages.star,
               title: 'Top Quality',
               color: Colors.amber,
             ),
@@ -435,12 +440,12 @@ class AboutUsView extends StatelessWidget {
   }
 
   Widget _buildFeatureCard({
-    required IconData icon,
+    required String icon,
     required String title,
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(12),
@@ -462,16 +467,23 @@ class AboutUsView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: AppColors.backgroundColor.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 32,
-            ),
+            child: SvgPicture.asset(icon,
+            height: 45,
+            color:
+            (title!='Safe & Secure')?
+            AppColors.primaryColor:null,
+            )
+
+            // Icon(
+            //   icon,
+            //   color: color,
+            //   size: 32,
+            // ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             title,
             style: TextStyle(

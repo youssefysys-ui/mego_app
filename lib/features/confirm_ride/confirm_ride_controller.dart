@@ -45,8 +45,8 @@ class ConfirmRideController extends GetxController {
   
   // Constants
   static const double baseFareRate = 2.5; // Base rate per km
-  static const double minimumFare = 15.0;
-  static const double maximumFare = 200.0;
+  static const double minimumFare = 5.0;
+  static const double maximumFare = 2000.0;
   static const int fareAdjustmentStep = 1;
 
   @override

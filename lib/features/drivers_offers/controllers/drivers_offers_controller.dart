@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/ride_accept_track/ride_accept_track_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/local_db/local_db.dart';
 import '../../../core/shared_models/user_ride_data.dart';
 import '../models/test_driver_data.dart';
 
@@ -297,7 +299,10 @@ class DriversOffersController extends GetxController {
       update();
 
       final supabase = Supabase.instance.client;
-      final userId = supabase.auth.currentUser?.id;
+
+      final localStorage = GetIt.instance<LocalStorageService>();
+
+      String userId = localStorage.userId.toString();
 
       if (userId == null) {
         throw Exception('User not authenticated');
