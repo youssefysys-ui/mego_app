@@ -297,6 +297,11 @@ class ConfirmRideController extends GetxController {
 
   // Navigate to drivers offers view
   void _navigateToDriversOffers(String rideRequestId) {
+    // Update userLocationData with the actual fare amount (user-adjusted price)
+    userLocationData = userLocationData.copyWith(
+      est_price: fareAmount.value, // Update estimated price to actual user-adjusted fare
+    );
+
     Get.to(() => DriversOffersView(rideRequestId: rideRequestId,
     userRideData: userLocationData
     ),

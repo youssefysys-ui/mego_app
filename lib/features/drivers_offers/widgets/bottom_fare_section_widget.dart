@@ -20,6 +20,8 @@ class _BottomFareSectionWidgetState extends State<BottomFareSectionWidget> {
 
   @override
   void initState() {
+    print("USER RIDE DATA=="+widget.userRideData.est_price.toString());
+    print("USER RIDE DATA=="+widget.userRideData.originalPrice.toString());
     super.initState();
     currentFare = widget.userRideData.est_price;
   }
@@ -62,60 +64,64 @@ class _BottomFareSectionWidgetState extends State<BottomFareSectionWidget> {
          ),
           SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.only(left:22.0,right:22),
+            padding: const EdgeInsets.only(left:28.0,right:28),
             child: Container(
               decoration:BoxDecoration(
                 
-                color: Color(0xffF5EFE6),
+                color: AppColors.backgroundColor,
+               // Color(0xffF5EFE6),
                 borderRadius: BorderRadius.circular(26),
               ),
-              child:Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(width: 9,),
-                GestureDetector(
-                  onTap: _decreaseFare,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.grey[300],
-                    child: Icon(Icons.remove,color: Colors.black,),
-                  ),
-                ),
-                Column(children: [
-              SizedBox(height: 7),
-                  Text("${currentFare.toStringAsFixed(0)}€",
-                  
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontFamily:'Roboto',
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryColor,
+              child:Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                  //  SizedBox(width: 9,),
+                  GestureDetector(
+                    onTap: _decreaseFare,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.grey[300],
+                      child: Icon(Icons.remove,color: Colors.black,),
                     ),
                   ),
-                  SizedBox(height:5),
-                   Text("Recommended Fare: ${widget.userRideData.est_price.toStringAsFixed(0)}€",
-                  
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontFamily:'Roboto',
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryColor,
+                  Column(children: [
+                SizedBox(height: 7),
+                    Text("${currentFare.toStringAsFixed(0)}€",
+
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontFamily:'Roboto',
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    SizedBox(height:5),
+                     Text("Recommended Fare: ${widget.userRideData.est_price.toStringAsFixed(0)}€",
+
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontFamily:'Roboto',
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                     // SizedBox(height: 7),
+
+
+
+                  ],),
+                   GestureDetector(
+                    onTap: _increaseFare,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.grey[300],
+                      child: Icon(Icons.add,color: Colors.black,),
                     ),
                   ),
-                    SizedBox(height: 7),
-                  
-            
-            
+//                    SizedBox(width: 9,),
+
                 ],),
-                 GestureDetector(
-                  onTap: _increaseFare,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.grey[300],
-                    child: Icon(Icons.add,color: Colors.black,),
-                  ),
-                ),
-                  SizedBox(width: 9,),
-            
-              ],),
+              ),
             ),
           ),
            SizedBox(height: 10),

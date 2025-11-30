@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import '../res/app_colors.dart';
 
@@ -56,7 +58,7 @@ class DriverInfoCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                 driverModel?.name ?? 'Driver',
+                 driverModel.name ?? 'Driver',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -67,14 +69,12 @@ class DriverInfoCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
-                        Icons.star,
-                        size: 16,
-                        color: AppColors.buttonColor,
-                      ),
+
+                      SvgPicture.asset(AppImages.star,),
+
                       const SizedBox(width: 4),
                       Text(
-                        '${driverModel?.rate ?? 4.9}',
+                        '${driverModel.rate ?? 4.9}',
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey[600],
@@ -105,13 +105,26 @@ class DriverInfoCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                     driverModel.carInfo!['model'] ?? '',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.txtColor,
-                        fontFamily: 'Roboto',
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          driverModel.carInfo!['brand'] ?? '',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.txtColor,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                        Text(" _ "),
+                        Text(
+                         driverModel.carInfo!['model'] ?? '',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.txtColor,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ],
                     ),
 
                     Row(
@@ -125,13 +138,14 @@ class DriverInfoCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                       driverModel.carInfo!['brand'] ?? '',
+                          driverModel.carInfo!['color'] ?? '',
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.txtColor,
                             fontFamily: 'Roboto',
                           ),
-                        )
+                        ),
+
                       ],
                     ),
                     Row(
@@ -144,14 +158,7 @@ class DriverInfoCard extends StatelessWidget {
                             fontFamily: 'Roboto',
                           ),
                         ),
-                        Text(
-                          " _ "+  driverModel.carInfo!['color'] ?? '',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.txtColor,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
+
                       ],
                     )
                   ],

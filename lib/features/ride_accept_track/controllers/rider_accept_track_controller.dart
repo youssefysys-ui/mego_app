@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -7,13 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/local_db/local_db.dart';
 import '../../trip_tracking&completed&rating/views/trip_tracking_view.dart';
 
 class RiderAcceptTrackController extends GetxController {
@@ -110,7 +109,8 @@ class RiderAcceptTrackController extends GetxController {
         'rideStatus': _currentRide!.status,
       };
       
-      await storage.write('active_ride_state', rideStateData);
+      await
+      Storage.save.custom('active_ride_state', rideStateData);
       print('💾 Ride state saved successfully - Ride ID: $rideId');
       
     } catch (e) {
@@ -119,45 +119,45 @@ class RiderAcceptTrackController extends GetxController {
   }
   
   /// Check if there's an active ride state and restore it
-  static Future<bool> hasActiveRideState() async {
-    try {
-      final rideStateData = await storage.read('active_ride_state');
-      if (rideStateData == null) return false;
-      
-      final savedAt = DateTime.parse(rideStateData['savedAt']);
-      final timeDifference = DateTime.now().difference(savedAt);
-      
-      // Consider ride active if saved within last 24 hours
-      return timeDifference.inHours < 24;
-    } catch (e) {
-      print('❌ Error checking active ride state: $e');
-      return false;
-    }
-  }
+  // static Future<bool> hasActiveRideState() async {
+  //   try {
+  //   //  final rideStateData = await storage.read('active_ride_state');
+  //     if (rideStateData == null) return false;
+  //
+  //     final savedAt = DateTime.parse(rideStateData['savedAt']);
+  //     final timeDifference = DateTime.now().difference(savedAt);
+  //
+  //     // Consider ride active if saved within last 24 hours
+  //     return timeDifference.inHours < 24;
+  //   } catch (e) {
+  //     print('❌ Error checking active ride state: $e');
+  //     return false;
+  //   }
+  // }
   
   /// Restore ride state from local storage
-  static Future<Map<String, dynamic>?> getActiveRideState() async {
-    try {
-      final rideStateData = await storage.read('active_ride_state');
-      if (rideStateData == null) return null;
-      
-      return Map<String, dynamic>.from(rideStateData);
-    } catch (e) {
-      print('❌ Error getting active ride state: $e');
-      return null;
-    }
-  }
-  
+  // static Future<Map<String, dynamic>?> getActiveRideState() async {
+  //   try {
+  //     final rideStateData = await storage.read('active_ride_state');
+  //     if (rideStateData == null) return null;
+  //
+  //     return Map<String, dynamic>.from(rideStateData);
+  //   } catch (e) {
+  //     print('❌ Error getting active ride state: $e');
+  //     return null;
+  //   }
+  // }
+  //
   /// Clear saved ride state (call when ride is completed/cancelled)
-  Future<void> clearRideState() async {
-    try {
-      await storage.delete('active_ride_state');
-      print('🗑️ Ride state cleared');
-    } catch (e) {
-      print('❌ Error clearing ride state: $e');
-    }
-  }
-  
+  // Future<void> clearRideState() async {
+  //   try {
+  //     await storage.delete('active_ride_state');
+  //     print('🗑️ Ride state cleared');
+  //   } catch (e) {
+  //     print('❌ Error clearing ride state: $e');
+  //   }
+  // }
+  //
   /// Restore controller state from saved data
   Future<void> restoreFromSavedState(Map<String, dynamic> savedState) async {
     try {
@@ -317,7 +317,7 @@ class RiderAcceptTrackController extends GetxController {
       } else if (updatedRide.isCompleted) {
         appMessageSuccess(text: 'You have arrived at your destination', context: Get.context!);
         // Clear saved state when ride is completed
-        clearRideState();
+       // clearRideState();
       }
     } catch (e) {
       print('❌ Error handling ride change: $e');

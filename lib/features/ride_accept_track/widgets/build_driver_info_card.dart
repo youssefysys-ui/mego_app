@@ -8,7 +8,9 @@ import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_widgets/driver_info_card.dart';
 import 'package:mego_app/core/shared_widgets/payment_card_widget.dart';
 import 'package:mego_app/core/utils/app_message.dart';
+import 'package:mego_app/core/utils/functions.dart';
 import 'package:mego_app/features/ride_accept_track/controllers/rider_accept_track_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BuildDriverInfoCard extends StatelessWidget {
   final RiderAcceptTrackController controller;
@@ -56,6 +58,30 @@ class BuildDriverInfoCard extends StatelessWidget {
       return '800m (5mins away)';
     }
     return '${controller.estimatedArrival}';
+  }
+
+  /// Call driver - opens phone dialer
+  Future<void> _callDriver() async {
+    final phoneNumber = driverModel.phone ?? '+201097970465';
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        await launchUrl(phoneUri);
+        appMessageFail(
+          text: 'Could not open phone dialer',
+          context: Get.context!,
+        );
+      }
+    } catch (e) {
+      print('Error launching phone dialer: $e');
+      appMessageFail(
+        text: 'Failed to call driver',
+        context: Get.context!,
+      );
+    }
   }
 
   @override
@@ -161,10 +187,7 @@ class BuildDriverInfoCard extends StatelessWidget {
         // Call Button
         Expanded(
           child: ElevatedButton(
-            onPressed: (){
-              appMessageSuccess(text: 'call driver available soon ', context: Get.context!);
-            },
-            //controller.callDriver,
+            onPressed: _callDriver,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               foregroundColor: AppColors.primaryColor,

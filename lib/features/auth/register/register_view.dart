@@ -188,9 +188,8 @@ class RegisterView extends StatelessWidget {
               children: [
                 SvgPicture.asset(AppImages.loginVector),
                 Positioned(
-                  bottom: 39,
-                  left: 10,
-                  right: 10,
+                  bottom: 49,
+
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

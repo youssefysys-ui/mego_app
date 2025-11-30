@@ -67,10 +67,7 @@ class SettingsView extends StatelessWidget {
                     const SizedBox(height: 32),
 
                     // App Information
-                    BuildAppInfoSection(),
-                   // _buildAppInfoSection(),
 
-                    const SizedBox(height: 32),
                   ],
                 ),
               );

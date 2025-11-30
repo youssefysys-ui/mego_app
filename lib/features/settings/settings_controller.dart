@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/local_db/local_db.dart';
 import '../../core/utils/app_message.dart';
@@ -8,7 +7,6 @@ import '../../core/utils/app_message.dart';
 class SettingsController extends GetxController {
   // Dependencies
   final SupabaseClient supabase = Supabase.instance.client;
-  final localStorage = GetIt.instance<LocalStorageService>();
 
   // Text controllers
   final nameController = TextEditingController();
@@ -44,17 +42,17 @@ class SettingsController extends GetxController {
 
   /// Load user data from local storage
   void _loadUserData() {
-    final localStorage = GetIt.instance<LocalStorageService>();
+
 
    // final userId= localStorage.userId;
 
     try {
-      userId =localStorage.userId.toString();
-          //supabase.auth.currentUser?.id ?? '';
-      currentName.value = localStorage.userName ?? 'User';
-      currentEmail.value = localStorage.userEmail ?? '';
-      currentPhone.value = localStorage.read<String>('user_phone') ?? '';
-      currentProfile.value = localStorage.userProfile ?? '';
+      userId =Storage.userId.toString();
+
+      currentName.value = Storage.userName.toString() ?? 'User';
+      currentEmail.value = Storage.userEmail.toString() ?? '';
+      currentPhone.value = Storage.userPhone.toString() ?? '';
+      currentProfile.value =Storage.userProfile.toString() ?? '';
 
       nameController.text = currentName.value;
       emailController.text = currentEmail.value;
@@ -110,7 +108,8 @@ class SettingsController extends GetxController {
       print('✅ Name updated in Supabase');
 
       // Update local storage
-      await localStorage.saveUserName(newName);
+
+      await Storage.save.userName(newName);
       currentName.value = newName;
 
       print('✅ Name updated in local storage');
@@ -167,7 +166,8 @@ class SettingsController extends GetxController {
       print('✅ Email updated in Supabase');
 
       // Update local storage
-      await localStorage.saveUserEmail(newEmail);
+
+      Storage.save.userEmail(newEmail);
       currentEmail.value = newEmail;
 
       print('✅ Email updated in local storage');

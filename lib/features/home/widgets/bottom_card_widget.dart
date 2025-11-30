@@ -75,14 +75,14 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                         children: [
                           _buildRideOption(
                             imagePath: AppImages.car,
-                            label: 'Ride',
+
                             isSelected: selectedService == 'Ride',
                             onTap: () => toggleService('Ride'),
                           ),
                           const SizedBox(width: 8),
                           _buildRideOption(
                             imagePath: AppImages.food,
-                            label: 'Food',
+
                             isSelected: selectedService == 'Food',
                             onTap: () => toggleService('Food'),
                           ),
@@ -132,7 +132,7 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Recent locations
                     _buildLocationItem(
@@ -198,7 +198,6 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
   Widget _buildRideOption({
     IconData? icon,
     String? imagePath,
-    required String label,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -231,14 +230,7 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                 size: 20,
               ),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.primaryColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
+
           ],
         ),
       ),
@@ -270,14 +262,7 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
       },
       child: Row(
         children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor,
-              shape: BoxShape.circle,
-            ),
-          ),
+         SvgPicture.asset(AppImages.locationIcon),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

@@ -75,23 +75,25 @@ class BottomNav extends StatelessWidget {
 
   Widget _buildRideSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.only(left: 20,right: 20),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Color(0xffF5EFE6),
+          color: AppColors.backgroundColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
             Row(
+              mainAxisAlignment:MainAxisAlignment.start,
               children: [
+                SizedBox(width: 30,),
                 SvgPicture.asset(
-                  AppImages.car,
-                  width: 40,
-                  height: 40,
+                  AppImages.redCar,
+                  width: 34,
+                  height: 23,
                 ),
-                
+
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,26 +135,27 @@ class BottomNav extends StatelessWidget {
             
             // Fare adjustment row
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+               // SizedBox(width: 30,),
                 GestureDetector(
                   onTap: controller.decreaseFare,
                   child: Container(
-                    width: 30,
-                    height: 30,
+                    width: 34,
+                    height: 34,
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: Colors.grey[300],
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.remove,
                       color: AppColors.primaryColor,
-                      size: 21,
+                      size: 25,
                     ),
                   ),
                 ),
                 
-                const SizedBox(width: 20),
+                //const SizedBox(width: 20),
                 
                 Column(
                   children: [
@@ -176,21 +179,21 @@ class BottomNav extends StatelessWidget {
                   ],
                 ),
                 
-                const SizedBox(width: 20),
+             //   const SizedBox(width: 20),
                 
                 GestureDetector(
                   onTap: controller.increaseFare,
                   child: Container(
-                    width: 30,
-                    height: 30,
+                    width: 34,
+                    height: 34,
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: Colors.grey[300],
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.add,
                       color: AppColors.primaryColor,
-                      size: 21,
+                      size: 25,
                     ),
                   ),
                 ),
@@ -204,9 +207,9 @@ class BottomNav extends StatelessWidget {
 
   Widget _buildPaymentMethodSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.only(left: 20,right: 20),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.primaryColor,
           borderRadius: BorderRadius.circular(12),
@@ -216,11 +219,10 @@ class BottomNav extends StatelessWidget {
           children: [
            Row(
               children: [
-                Icon(
-                  Icons.account_balance_wallet,
-                  color: Colors.white,
-                  size: 19,
+                SvgPicture.asset(AppImages.paymentMethodIcon,
+                width: 19,height: 19,
                 ),
+
                 SizedBox(width: 30),
                 Text(
                   'Payment Method',
@@ -249,12 +251,12 @@ class BottomNav extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.money,
+                  SvgPicture.asset(
+                      AppImages.cashIcon,
                       color: controller.selectedPaymentMethod.value == 'Cash' 
                           ? AppColors.primaryColor
                           : Colors.white70,
-                      size: 20,
+                     // size: 20,
                     ),
                     const SizedBox(width: 12),
                     Text(
@@ -288,12 +290,19 @@ class BottomNav extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.credit_card,
-                      color: controller.selectedPaymentMethod.value == 'Card' 
-                          ? Colors.white 
+                    // Icon(
+                    //   Icons.credit_card,
+                    //   color: controller.selectedPaymentMethod.value == 'Card'
+                    //       ? Colors.white
+                    //       : Colors.white70,
+                    //   size: 20,
+                    // ),
+                    SvgPicture.asset(
+                      AppImages.cardIcon,
+                      color: controller.selectedPaymentMethod.value == 'Card'
+                          ? AppColors.primaryColor
                           : Colors.white70,
-                      size: 20,
+
                     ),
                     const SizedBox(width: 12),
                     Text(

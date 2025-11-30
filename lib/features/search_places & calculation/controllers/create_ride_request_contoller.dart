@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mego_app/core/shared_models/models.dart';
@@ -26,6 +25,8 @@ class CreateRideRequestController extends GetxController {
     required double fareAmount,
     required String paymentMethod,
   }) async {
+    print("Creating ride request...");
+    print("Creating ride request.FARE AMOUNT==.."+fareAmount.toString());
     isLoading.value = true;
     errorMessage.value = '';
 
@@ -33,12 +34,12 @@ class CreateRideRequestController extends GetxController {
       final supabase = Supabase.instance.client;
 
       // PROCESS 1: Get local storage instance
-      final localStorage = GetIt.instance<LocalStorageService>();
-      final userId = localStorage.userId;
+
+      final userId = Storage.userId.toString();
 
 
 
-      if (userId == null) {
+      if (userId == 'null') {
         errorMessage.value = 'Please login to create a ride request';
         appMessageFail(
           text: 'Please login to create a ride request',

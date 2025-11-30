@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/res/app_strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/local_db/local_db.dart';
@@ -16,7 +15,6 @@ class WalletController extends GetxController {
 
 
 
-  final localStorage = GetIt.instance<LocalStorageService>();
   String   userId ='';
 
  // = localStorage.userId;
@@ -25,7 +23,7 @@ class WalletController extends GetxController {
   void onInit() {
     super.onInit();
     _supabase = Supabase.instance.client;
-    userId = localStorage.userId.toString();
+    userId = Storage.userId.toString();
     loadWallet();
   }
 

@@ -115,9 +115,9 @@ class _LoginViewState extends State<LoginView> {
             children: [
               SvgPicture.asset(AppImages.loginVector),
               Positioned(
-                bottom: 39,
-                left: 10,
-                right: 10,
+                bottom: 49,
+                left: 0,
+                right: 0,
                 child: InkWell(
                   onTap:(){
                     Get.to(() => RegisterView(),

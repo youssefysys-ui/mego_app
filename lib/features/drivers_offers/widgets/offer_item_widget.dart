@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mego_app/core/res/app_colors.dart';
+import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
+import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import 'package:mego_app/features/drivers_offers/driver_offer_model.dart';
 import 'package:mego_app/features/drivers_offers/controllers/drivers_offers_controller.dart';
 
@@ -23,10 +26,12 @@ class OfferItemWidget extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
+        //cardColor,
+        borderRadius: BorderRadius.circular(18),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.primaryColor.withOpacity(0.12),
             blurRadius: 15,
             offset: const Offset(0, 4),
             spreadRadius: 0,
@@ -39,7 +44,9 @@ class OfferItemWidget extends StatelessWidget {
           ),
         ],
         border: Border.all(
-          color: offer.isActive ? AppColors.primaryColor.withValues(alpha: 0.3) : Colors.grey.shade200,
+          color: offer.isActive ? AppColors.primaryColor.withOpacity(0.22):
+              //.withValues(alpha: 0.3) :
+          Colors.grey.shade200,
           width: offer.isActive ? 2 : 1,
         ),
       ),
@@ -48,7 +55,7 @@ class OfferItemWidget extends StatelessWidget {
           _buildDriverInfoSection(),
           const SizedBox(height: 8),
           _buildActionButtons(),
-          if (!offer.isExpired) _buildExpiryCountdown(),
+        //  if (!offer.isExpired) _buildExpiryCountdown(),
         ],
       ),
     );
@@ -122,11 +129,9 @@ class OfferItemWidget extends StatelessWidget {
               const SizedBox(height: 2),
               Row(
                 children: [
-                  const Icon(
-                    Icons.star_rounded,
-                    color: Colors.amber,
-                    size: 12,
-                  ),
+
+                  SvgPicture.asset(AppImages.star),
+
                   const SizedBox(width: 2),
                   Text(
                     '${offer.displayRating}',
@@ -253,10 +258,10 @@ class OfferItemWidget extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: offer.isExpired 
                     ? Colors.grey[300] 
-                    : AppColors.primaryColor,
+                    : AppColors.buttonColor,
                 foregroundColor: offer.isExpired 
-                    ? Colors.grey[500] 
-                    : Colors.white,
+                    ? Colors.grey[700]
+                    : AppColors.primaryColor,
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -268,14 +273,24 @@ class OfferItemWidget extends StatelessWidget {
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        ),
+
+                        Container(
+                            decoration:BoxDecoration(
+                              borderRadius:BorderRadius.circular(12),
+                              color:  Colors.white
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: LoadingWidget(),
+                            )),
+                        // SizedBox(
+                        //   width: 18,
+                        //   height: 18,
+                        //   child: CircularProgressIndicator(
+                        //     strokeWidth: 2,
+                        //     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        //   ),
+                        // ),
                         const SizedBox(width: 8),
                         Text(
                           'Accepting...',
@@ -290,18 +305,16 @@ class OfferItemWidget extends StatelessWidget {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 18,
-                          color: Colors.white,
-                        ),
+
                         const SizedBox(width: 6),
                         Text(
-                          offer.isExpired ? 'Expired' : 'Accept Offer',
+                          offer.isExpired ? 'Expired' : 'Accept',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 17,
                             fontWeight: FontWeight.w600,
-                            letterSpacing: -0.2,
+                            fontFamily:'Montserrat',
+
+                            //letterSpacing: -0.2,
                           ),
                         ),
                       ],
@@ -338,7 +351,7 @@ class OfferItemWidget extends StatelessWidget {
         children: [
           Icon(
             Icons.timer_rounded,
-            color: Colors.orange.shade700,
+            color: AppColors.primaryColor,
             size: 16,
           ),
           const SizedBox(width: 6),

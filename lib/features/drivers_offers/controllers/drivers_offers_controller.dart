@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/utils/app_message.dart';
@@ -300,11 +299,12 @@ class DriversOffersController extends GetxController {
 
       final supabase = Supabase.instance.client;
 
-      final localStorage = GetIt.instance<LocalStorageService>();
 
-      String userId = localStorage.userId.toString();
 
-      if (userId == null) {
+      String userId = Storage.userId.toString();
+
+
+      if (userId =='null') {
         throw Exception('User not authenticated');
       }
 

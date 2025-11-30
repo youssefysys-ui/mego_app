@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../core/local_db/local_db.dart';
 import '../../../../core/utils/app_message.dart';
 import '../../../home/views/home_view.dart';
+import '../../save_data/save_user_data.dart';
 import '../../verify_otp/verify_otp_view.dart';
 
 class CompleteProfileController extends GetxController {
   // Dependencies
   final SupabaseClient supabase = Supabase.instance.client;
-  final localStorage = GetIt.instance<LocalStorageService>();
 
   // Text controllers
   final nameController = TextEditingController();
@@ -76,6 +73,8 @@ class CompleteProfileController extends GetxController {
       print('   📱 Phone: $existingPhone');
     }
   }
+
+
 
   /// Validate and save profile for phone login users
   Future<void> savePhoneUserProfile(BuildContext context) async {
@@ -158,33 +157,16 @@ class CompleteProfileController extends GetxController {
         print('⚠️ Warning: Supabase auth failed but continuing: $authError');
         print('   User data is saved, they can login later');
       }
-      // PROCESS 3: Save user data to local storage with validation
+      // PROCESS 3: Save user data to local storage using reusable SaveUserData service
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('💾 STEP 3: Saving user data to local storage');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      final box = GetStorage();
-      final localStorageService = LocalStorageService(box);
-      
-      // Validate userId before saving
-      if (fetchedUserId.isEmpty) {
-        throw Exception('User ID from Supabase is empty');
-      }
-      
-      await localStorageService.saveUserIdSafely(fetchedUserId);
-      await localStorageService.saveUserName(userData['name']);
-      await localStorageService.saveUserEmail(userData['email']);
-      if (existingPhone != null && existingPhone!.isNotEmpty) {
-        await localStorageService.write('user_phone', existingPhone);
-        print('   📱 Phone saved: $existingPhone');
-      }
-      
-      if (profileImageUrl.value.isNotEmpty) {
-        await localStorageService.saveUserProfile(profileImageUrl.value);
-        print('   🖼️ Profile image saved');
-      }
-
-      print('✅ User data saved to local storage successfully');
+      // Use the SaveUserData service with profile image as fallback
+      await SaveUserData.toLocalStorage(
+        userData: userData,
+        fallbackProfile: profileImageUrl.value.isNotEmpty ? profileImageUrl.value : null,
+      );
 
       // PROCESS 4: Show success message
       if (context.mounted) {
@@ -349,13 +331,18 @@ class CompleteProfileController extends GetxController {
 
       print('✅ Google user profile updated with phone');
 
-      // Save to local storage
-      await localStorage.saveUserName(existingName ?? 'MEGO User');
-      await localStorage.saveUserEmail(existingEmail ?? '');
-      await localStorage.write('user_phone', phone);
-      if (existingPhoto != null && existingPhoto!.isNotEmpty) {
-        await localStorage.saveUserProfile(existingPhoto!);
-      }
+      // PROCESS: Fetch updated user data from Supabase
+      final updatedUserData = await supabase
+          .from('users')
+          .select('id, name, email, phone, profile')
+          .eq('id', userId)
+          .single();
+
+      // Save to local storage using reusable SaveUserData service
+      await SaveUserData.toLocalStorage(
+        userData: updatedUserData,
+        fallbackProfile: existingPhoto,
+      );
 
       print('✅ Complete user data saved to local storage');
 

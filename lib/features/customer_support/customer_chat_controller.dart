@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
@@ -19,14 +18,14 @@ class CustomerChatController extends GetxController {
   late final SupabaseClient _supabase;
   RealtimeChannel? _chatChannel;
 
-  final localStorage = GetIt.instance<LocalStorageService>();
 
   // PROCESS 2: Check if user data exists in local_db
   String userId='';
 
   @override
   void onInit() {
-    userId= localStorage.userId.toString();
+    userId= Storage.userId.toString();
+
     super.onInit();
     _supabase = Supabase.instance.client;
     _initializeChat();

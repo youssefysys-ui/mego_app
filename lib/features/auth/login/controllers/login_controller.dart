@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:mego_app/core/utils/app_message.dart';
@@ -8,34 +7,21 @@ import 'package:mego_app/features/auth/verify_otp/verify_otp_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/local_db/local_db.dart';
 import '../../../auth/complete_profile/views/complete_profile_view.dart';
+import '../../save_data/save_user_data.dart';
 
 class LoginController extends GetxController {
-  // ════════════════════════════════════════════════════════════════════════
-  // DEPENDENCIES & CONTROLLERS
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Firebase Auth instance for phone authentication with OTP
   final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
-  
-  /// Supabase client for user data management (no OTP)
   final SupabaseClient supabase = Supabase.instance.client;
 
-  // Text controllers for form inputs
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final loginFormKey = GlobalKey<FormState>();
 
-  // Reactive state variables
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   
-  /// Store verification ID from Firebase for OTP verification
   String? _verificationId;
-
-  // Constructor with dependency injection
-  //LoginController(this._loginRepository);
 
   @override
   void onClose() {
@@ -44,19 +30,11 @@ class LoginController extends GetxController {
     super.onClose();
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // FIREBASE PHONE AUTHENTICATION - SEND OTP
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 1: Send OTP via Firebase Phone Authentication
-  /// This method sends OTP to the user's phone number using Firebase
-  /// Firebase handles OTP generation and delivery (no Twilio needed)
   Future<bool> sendFirebaseOTP({
     required String phoneNumber,
     required BuildContext context,
   }) async {
     try {
-      // PROCESS 1: Set loading state and clear previous errors
       isLoading.value = true;
       errorMessage.value = '';
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -64,21 +42,15 @@ class LoginController extends GetxController {
       print("   Phone Number: $phoneNumber");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-      // PROCESS 2: Call Firebase verifyPhoneNumber method
-      // This will trigger OTP sending via Firebase
       await _firebaseAuth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         timeout: const Duration(seconds: 60),
         
-        // CALLBACK 1: Auto-verification completed (instant verification)
-        // This happens on some Android devices when SMS permission is granted
         verificationCompleted: (firebase_auth.PhoneAuthCredential credential) async {
           print("✅ CALLBACK: Auto-verification completed");
           await _signInWithFirebaseCredential(credential, context);
         },
         
-        // CALLBACK 2: Verification failed
-        // This happens when Firebase rejects the phone number or encounters error
         verificationFailed: (firebase_auth.FirebaseAuthException e) {
           print("❌ CALLBACK: Verification failed");
           print("   Error Code: ${e.code}");
@@ -93,13 +65,10 @@ class LoginController extends GetxController {
           }
         },
         
-        // CALLBACK 3: OTP code sent successfully
-        // This is the main callback - OTP has been sent to user's phone
         codeSent: (String verificationId, int? resendToken) {
           print("✅ CALLBACK: OTP sent successfully via Firebase");
           print("   Verification ID: ${verificationId.substring(0, 20)}...");
           
-          // PROCESS 3: Store verification ID for later OTP verification
           _verificationId = verificationId;
           isLoading.value = false;
           
@@ -110,7 +79,6 @@ class LoginController extends GetxController {
             );
           }
           
-          // PROCESS 4: Navigate to OTP verification screen
           print("🔄 STEP 2: Navigating to OTP verification screen");
           Get.to(() => VerifyOtpView(phoneNumber: phoneNumber), arguments: {
             'verificationId': verificationId,
@@ -119,8 +87,6 @@ class LoginController extends GetxController {
           });
         },
         
-        // CALLBACK 4: Code auto-retrieval timeout
-        // This is called after the timeout duration
         codeAutoRetrievalTimeout: (String verificationId) {
           print("⏰ CALLBACK: Auto-retrieval timeout");
           _verificationId = verificationId;
@@ -143,12 +109,6 @@ class LoginController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // FIREBASE CREDENTIAL SIGN IN (Auto-verification or Manual OTP)
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 2: Sign in with Firebase credential after OTP verification
-  /// This method is called either automatically or after manual OTP entry
   Future<void> _signInWithFirebaseCredential(
     firebase_auth.PhoneAuthCredential credential,
     BuildContext context,
@@ -158,7 +118,6 @@ class LoginController extends GetxController {
       print("🔐 STEP 3: Signing in with Firebase credential");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      // PROCESS 1: Sign in to Firebase with the phone credential
       final userCredential = await _firebaseAuth.signInWithCredential(credential);
       
       if (userCredential.user != null) {
@@ -166,7 +125,6 @@ class LoginController extends GetxController {
         print("   User ID: ${userCredential.user!.uid}");
         print("   Phone: ${userCredential.user!.phoneNumber}");
         
-        // PROCESS 2: Sync Firebase user with Supabase database
         await _syncFirebaseUserWithSupabase(userCredential.user!, context);
       }
     } catch (e) {
@@ -182,12 +140,6 @@ class LoginController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // SYNC FIREBASE USER WITH SUPABASE (NO OTP VERIFICATION IN SUPABASE)
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 3: Check if user exists in Supabase and handle accordingly
-  /// Firebase handled the OTP - now we just manage user data in Supabase
   Future<void> _syncFirebaseUserWithSupabase(
     firebase_auth.User firebaseUser,
     BuildContext context,
@@ -197,7 +149,6 @@ class LoginController extends GetxController {
       print("🔄 STEP 4: Syncing Firebase user with Supabase");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      // PROCESS 1: Check if user exists in Supabase users table
       print("🔍 PROCESS 1: Checking Supabase users table");
       final existingUser = await supabase
           .from('users')
@@ -206,7 +157,6 @@ class LoginController extends GetxController {
           .maybeSingle();
 
       if (existingUser != null) {
-        // PROCESS 2A: Existing user found - Login
         print("✅ PROCESS 2A: Existing user found");
         print("   User ID: ${existingUser['id']}");
         print("   Name: ${existingUser['name']}");
@@ -214,7 +164,6 @@ class LoginController extends GetxController {
         
         await _handleExistingUserLogin(existingUser, context);
       } else {
-        // PROCESS 2B: New user - Navigate to complete profile
         print("🆕 PROCESS 2B: New user detected");
         print("   Firebase UID: ${firebaseUser.uid}");
         print("   Phone: ${firebaseUser.phoneNumber}");
@@ -242,12 +191,8 @@ class LoginController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // HANDLE EXISTING USER LOGIN
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 4: Handle login for existing users
-  /// Save user data to local storage and navigate to home
+
+
   Future<void> _handleExistingUserLogin(
     Map<String, dynamic> userData,
     BuildContext context,
@@ -257,31 +202,7 @@ class LoginController extends GetxController {
       print("💾 STEP 5: Saving user data to local storage");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      // PROCESS 1: Get local storage instance
-      final box = GetStorage();
-      LocalStorageService localStorage = Get.put(LocalStorageService(box));
-      
-      // PROCESS 2: Save user data to local storage with validation
-      final userId = userData['id'] as String?;
-      
-      if (userId == null || userId.isEmpty) {
-        print('❌ ERROR: User ID from Supabase is null or empty');
-        throw Exception('Invalid user ID from Supabase');
-      }
-      
-      await localStorage.saveUserIdSafely(userId);
-      await localStorage.saveUserName(userData['name'] ?? 'User');
-      await localStorage.saveUserEmail(userData['email'] ?? '');
-      await localStorage.write('user_phone', userData['phone']);
-      
-      if (userData['profile'] != null && userData['profile'].toString().isNotEmpty) {
-        await localStorage.saveUserProfile(userData['profile']);
-      }
-      
-      print("✅ User data saved successfully");
-      print("   Name: ${userData['name']}");
-      print("   Email: ${userData['email']}");
-      print("   Phone: ${userData['phone']}");
+      await SaveUserData.toLocalStorage(userData: userData);
       
       if (context.mounted) {
         appMessageSuccess(
@@ -290,7 +211,6 @@ class LoginController extends GetxController {
         );
       }
       
-      // PROCESS 3: Navigate to home screen
       print("🏠 STEP 6: Navigating to Home screen");
       Get.offAll(
         () => const HomeView(),
@@ -306,43 +226,28 @@ class LoginController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // LOGIN BUTTON ACTION
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Main login method - validates phone and sends Firebase OTP
   Future<void> login(BuildContext context) async {
-    // VALIDATION 1: Check if phone number is entered
     if (phoneController.text.trim().isEmpty) {
       appMessageFail(text: 'Please enter your phone number', context: context);
       return;
     }
 
-    // VALIDATION 2: Check phone number length
     if (phoneController.text.trim().length < 7) {
       appMessageFail(text: 'Please enter a valid phone number', context: context);
       return;
     }
 
-    // PROCESS: Send OTP via Firebase
     await sendFirebaseOTP(
       phoneNumber: phoneController.text.trim(),
       context: context,
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // ENSURE USER RECORD EXISTS IN SUPABASE (Helper Method)
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Helper method to check if user exists in Supabase users table
-  /// Used for both Google and Phone authentication
-  /// Returns user data map with 'existed' status
   Future<Map<String, dynamic>> _ensureUserRecord({
     required User user,
     String? displayName,
     String? photoUrl,
-    String? source, // 'phone' or 'google'
+    String? source,
   }) async {
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     print("🗄️ DATABASE CHECK: Verifying user record");
@@ -351,7 +256,6 @@ class LoginController extends GetxController {
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     
     try {
-      // PROCESS 1: Query Supabase users table for existing user
       print('🔍 PROCESS 1: Querying Supabase users table');
       final existing = await supabase
           .from('users')
@@ -360,7 +264,6 @@ class LoginController extends GetxController {
           .maybeSingle();
 
       if (existing != null) {
-        // PROCESS 2A: User found - Return existing data
         print('✅ PROCESS 2A: Existing user record found');
         print('   🆔 ID: ${existing['id']}');
         print('   👤 Name: ${existing['name']}');
@@ -383,7 +286,6 @@ class LoginController extends GetxController {
       print('🆕 STEP DB-3: No user row found - New user detected');
       print("   Will need to complete profile");
       
-      // Return new user data (don't insert yet, let complete profile do it)
       return {
         'existed': false,
         'userId': user.id,
@@ -396,7 +298,6 @@ class LoginController extends GetxController {
     } catch (e, st) {
       print('❌ STEP DB-ERR: Failed ensuring user record: $e');
       print(st);
-      // If DB check fails, treat as new to be safe
       return {
         'existed': false,
         'userId': user.id,
@@ -409,13 +310,6 @@ class LoginController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // GOOGLE SIGN-IN WITH SUPABASE INTEGRATION (NO OTP)
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Google Sign-In authentication flow
-  /// This method uses Google OAuth for authentication and syncs with Supabase
-  /// No OTP is needed for Google login - direct authentication
   Future<void> googleLogin(BuildContext context) async {
     try {
       isLoading.value = true;
@@ -425,7 +319,6 @@ class LoginController extends GetxController {
       print("🔐 GOOGLE LOGIN: Starting Google Sign-In process");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-      // PROCESS 1: Initialize Google Sign-In with required scopes
       print("📱 STEP 1: Initializing Google Sign-In");
       final GoogleSignIn googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
@@ -435,11 +328,9 @@ class LoginController extends GetxController {
         '851699318144-k0tr7281tkbcsj4u7vbleo3obna75sfu.apps.googleusercontent.com',
       );
 
-      // PROCESS 2: Sign out any previous Google session (force fresh login)
       print("🔄 STEP 2: Clearing previous Google session");
       await googleSignIn.signOut();
 
-      // PROCESS 3: Show Google Sign-In prompt to user
       print("👤 STEP 3: Showing Google Sign-In prompt");
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       
@@ -453,10 +344,8 @@ class LoginController extends GetxController {
       print("   Email: ${googleUser.email}");
       print("   Display Name: ${googleUser.displayName}");
 
-      // PROCESS 4: Get authentication credentials from Google
       print("🔑 STEP 5: Retrieving Google authentication tokens");
-      final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       final String? accessToken = googleAuth.accessToken;
       final String? idToken = googleAuth.idToken;
@@ -472,7 +361,6 @@ class LoginController extends GetxController {
       
       print("✅ STEP 6: Google tokens retrieved successfully");
 
-      // PROCESS 5: Authenticate with Supabase using Google ID token
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       print("🔄 STEP 7: Authenticating with Supabase");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -484,7 +372,6 @@ class LoginController extends GetxController {
       
       print("✅ STEP 8: Supabase authentication successful");
 
-      // PROCESS 6: Extract user data from Google authentication
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       print("📊 STEP 9: Extracting Google user data");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -496,14 +383,12 @@ class LoginController extends GetxController {
       print("   📧 Email: $userEmail");
       print("   🖼️ Photo: ${userPhoto.substring(0, 50)}...");
 
-      // PROCESS 7: Check if user exists in Supabase users table BY EMAIL
       if (response.user != null) {
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         print('🔍 STEP 10: Checking Supabase users table BY EMAIL');
         print('   Email: $userEmail');
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         
-        // PROCESS 8: Query database by EMAIL to check if user exists
         final existingUser = await supabase
             .from('users')
             .select('id, name, email, phone, profile')
@@ -511,7 +396,6 @@ class LoginController extends GetxController {
             .maybeSingle();
 
         if (existingUser == null) {
-          // PROCESS 9A: New user - Navigate to Complete Profile
           print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
           print('🆕 STEP 11A: NEW USER DETECTED');
           print('   Email not found in users table');
@@ -524,7 +408,6 @@ class LoginController extends GetxController {
             context: context,
           );
           
-          // Navigate to complete profile screen
           Get.offAll(
             () => const CompleteProfileView(),
             arguments: {
@@ -538,7 +421,6 @@ class LoginController extends GetxController {
           return;
         }
 
-        // PROCESS 9B: Existing user - Login directly
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         print('✅ STEP 11B: EXISTING USER FOUND BY EMAIL');
         print('   User ID: ${existingUser['id']}');
@@ -547,39 +429,13 @@ class LoginController extends GetxController {
         print('   Action: Login and navigate to Home');
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         
-        // PROCESS 10: Get local storage instance
         print('💾 STEP 12: Saving user data to local storage');
-        final box = GetStorage();
-        LocalStorageService localStorage = Get.put(LocalStorageService(box));
         
-        // PROCESS 11: Save user data to local storage with validation
-        final userId = existingUser['id'] as String?;
-        
-        if (userId == null || userId.isEmpty) {
-          print('❌ ERROR: User ID from Supabase is null or empty');
-          throw Exception('Invalid user ID from Supabase');
-        }
-        
-        await localStorage.saveUserIdSafely(userId);
-        await localStorage.saveUserEmail(existingUser['email'] ?? userEmail);
-        await localStorage.saveUserName(existingUser['name'] ?? userName);
-        
-        if (existingUser['profile'] != null && existingUser['profile'].toString().isNotEmpty) {
-          await localStorage.saveUserProfile(existingUser['profile']);
-        } else {
-          await localStorage.saveUserProfile(userPhoto);
-        }
-        
-        if (existingUser['phone'] != null && existingUser['phone'].toString().isNotEmpty) {
-          await localStorage.write('user_phone', existingUser['phone']);
-          print('   📱 Phone: ${existingUser['phone']}');
-        }
-        
-        print('   👤 Name: ${existingUser['name']}');
-        print('   📧 Email: ${existingUser['email']}');
-        print('✅ User data saved successfully');
+        await SaveUserData.toLocalStorage(
+          userData: existingUser,
+          fallbackProfile: userPhoto,
+        );
 
-        // PROCESS 12: Show success message
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         print('🏠 STEP 13: Navigating to Home screen');
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -589,7 +445,6 @@ class LoginController extends GetxController {
           context: context,
         );
 
-        // PROCESS 13: Navigate to home screen
         Get.offAll(
           () => const HomeView(),
           transition: Transition.fadeIn,
@@ -601,7 +456,6 @@ class LoginController extends GetxController {
         return;
       }
 
-      // PROCESS 14: Authentication failed
       print("❌ ERROR: Supabase authentication returned null user");
       appMessageFail(
         text: 'Failed to sign in with Google',
@@ -616,9 +470,7 @@ class LoginController extends GetxController {
     }
   }
 
-  ///
-  ///
-  // Future<void> googleLogin(BuildContext context) async {
+
   //   try {
   //     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   //     print("🚀 STATE: Starting Google Sign-In Process");

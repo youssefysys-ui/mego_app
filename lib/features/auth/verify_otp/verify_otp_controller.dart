@@ -2,24 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:mego_app/core/utils/app_message.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:get_storage/get_storage.dart';
 import '../complete_profile/views/complete_profile_view.dart';
+import '../save_data/save_user_data.dart';
 
 class VerifyOtpController extends GetxController {
-  // ════════════════════════════════════════════════════════════════════════
-  // DEPENDENCIES & CONTROLLERS
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Firebase Auth instance for OTP verification
   final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
-  
-  /// Supabase client for user data management (no OTP verification)
   final SupabaseClient supabase = Supabase.instance.client;
   
-  // Text controllers for OTP inputs (6-digit OTP)
   final otp1Controller = TextEditingController();
   final otp2Controller = TextEditingController();
   final otp3Controller = TextEditingController();
@@ -27,7 +18,6 @@ class VerifyOtpController extends GetxController {
   final otp5Controller = TextEditingController();
   final otp6Controller = TextEditingController();
   
-  // Focus nodes for OTP inputs (for smooth navigation between fields)
   final otp1FocusNode = FocusNode();
   final otp2FocusNode = FocusNode();
   final otp3FocusNode = FocusNode();
@@ -35,11 +25,9 @@ class VerifyOtpController extends GetxController {
   final otp5FocusNode = FocusNode();
   final otp6FocusNode = FocusNode();
   
-  // State variables for GetBuilder
   bool isLoading = false;
   String errorMessage = '';
   
-  /// Store data from previous screen (login)
   late String phoneNumber;
   late String verificationId;
   
@@ -47,11 +35,6 @@ class VerifyOtpController extends GetxController {
   void onInit() {
     super.onInit();
     
-    // ════════════════════════════════════════════════════════════════════════
-    // INITIALIZATION: Get data from previous screen
-    // ════════════════════════════════════════════════════════════════════════
-    
-    // PROCESS: Extract phone number and verification ID from navigation arguments
     final arguments = Get.arguments as Map<String, dynamic>?;
     phoneNumber = arguments?['phoneNumber'] ?? '';
     verificationId = arguments?['verificationId'] ?? '';
@@ -91,15 +74,8 @@ class VerifyOtpController extends GetxController {
         otp6Controller.text;
   }
   
-  // ════════════════════════════════════════════════════════════════════════
-  // FIREBASE OTP VERIFICATION
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 1: Verify OTP code entered by user with Firebase
-  /// This verifies the 6-digit OTP sent via SMS
   Future<void> verifyOtp(BuildContext context, String phoneNumber) async {
     try {
-      // PROCESS 1: Set loading state
       isLoading = true;
       errorMessage = '';
       update();
@@ -108,10 +84,8 @@ class VerifyOtpController extends GetxController {
       print("🔐 FIREBASE OTP VERIFICATION: Starting");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      // PROCESS 2: Get OTP code from input fields
       final otpCode = getOtpCode();
       
-      // VALIDATION: Check OTP code length
       if (otpCode.length != 6) {
         print("❌ Validation failed: OTP code incomplete");
         throw Exception('Please enter the complete OTP code');
@@ -122,7 +96,6 @@ class VerifyOtpController extends GetxController {
       print('   OTP Code: $otpCode');
       print('   Verification ID: ${verificationId.substring(0, 20)}...');
 
-      // PROCESS 3: Create Firebase phone auth credential
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('🔑 STEP 2: Creating Firebase phone credential');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -134,7 +107,6 @@ class VerifyOtpController extends GetxController {
       
       print('✅ Credential created successfully');
 
-      // PROCESS 4: Sign in to Firebase with the credential
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('🔐 STEP 3: Signing in with Firebase credential');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -146,30 +118,23 @@ class VerifyOtpController extends GetxController {
         print('   User ID: ${userCredential.user!.uid}');
         print('   Phone: ${userCredential.user!.phoneNumber}');
         
-        // PROCESS 5: Sign in user to Supabase after Firebase verification
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         print('🔐 STEP 4: Authenticating with Supabase');
         print('   Firebase phone verification completed - creating Supabase session');
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
         try {
-          // Create Supabase auth session using verified phone number
-          // Firebase already verified OTP - Supabase just needs to create session
-          await supabase.auth
-
-              .signInWithOtp(
+          await supabase.auth.signInWithOtp(
             phone: userCredential.user!.phoneNumber!,
-            shouldCreateUser: false, // User may or may not exist in auth.users
+            shouldCreateUser: false,
           );
           print('✅ Supabase authentication session created');
           print('   Phone: ${userCredential.user!.phoneNumber}');
         } catch (supabaseAuthError) {
-          // If Supabase auth fails, continue anyway - Firebase verified the phone
           print('⚠️ Warning: Supabase auth session creation failed: $supabaseAuthError');
           print('   Continuing with flow - user data will be saved to local storage');
         }
         
-        // PROCESS 6: Check if this is profile completion flow
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         print('🔍 STEP 5: Checking user context');
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -178,7 +143,6 @@ class VerifyOtpController extends GetxController {
         final isProfileCompletion = arguments?['isProfileCompletion'] == true;
         
         if (isProfileCompletion) {
-          // PROCESS 7A: Handle Google user completing phone verification
           print('📋 FLOW: Google user completing profile with phone');
           await _handleGoogleUserProfileCompletion(
             userCredential.user!,
@@ -187,7 +151,6 @@ class VerifyOtpController extends GetxController {
             context,
           );
         } else {
-          // PROCESS 7B: Regular phone login flow - sync with Supabase
           print('📋 FLOW: Regular phone authentication');
           await _syncFirebaseUserWithSupabase(userCredential.user!, context);
         }
@@ -223,12 +186,6 @@ class VerifyOtpController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // SYNC FIREBASE USER WITH SUPABASE AFTER OTP VERIFICATION
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 2: After Firebase OTP verification, check Supabase users table
-  /// This determines if user is new or existing
   Future<void> _syncFirebaseUserWithSupabase(
     firebase_auth.User firebaseUser,
     BuildContext context,
@@ -238,7 +195,6 @@ class VerifyOtpController extends GetxController {
       print("🔄 STEP 5: Syncing with Supabase users table");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      // PROCESS 1: Check if user exists in Supabase users table
       print('🔍 PROCESS 1: Checking Supabase users table');
       final existingUser = await supabase
           .from('users')
@@ -247,7 +203,6 @@ class VerifyOtpController extends GetxController {
           .maybeSingle();
 
       if (existingUser != null) {
-        // PROCESS 2A: Existing user found - Login
         print('✅ PROCESS 2A: Existing user found');
         print('   User ID: ${existingUser['id']}');
         print('   Name: ${existingUser['name']}');
@@ -255,7 +210,6 @@ class VerifyOtpController extends GetxController {
         
         await _handleExistingUserLogin(existingUser, context);
       } else {
-        // PROCESS 2B: New user - Navigate to complete profile
         print('🆕 PROCESS 2B: New user detected');
         print('   Firebase UID: ${firebaseUser.uid}');
         print('   Phone: ${firebaseUser.phoneNumber}');
@@ -289,12 +243,6 @@ class VerifyOtpController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // HANDLE EXISTING USER LOGIN AFTER OTP VERIFICATION
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// STEP 3: Handle login for existing users
-  /// Save user data to local storage and navigate to home
   Future<void> _handleExistingUserLogin(
     Map<String, dynamic> userData,
     BuildContext context,
@@ -304,31 +252,7 @@ class VerifyOtpController extends GetxController {
       print("💾 STEP 6: Saving user data to local storage");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       
-      // PROCESS 1: Get local storage instance
-      final box = GetStorage();
-      LocalStorageService localStorage = LocalStorageService(box);
-      
-      // PROCESS 2: Save user data to local storage with validation
-      final userId = userData['id'] as String?;
-      
-      if (userId == null || userId.isEmpty) {
-        print('❌ ERROR: User ID from Supabase is null or empty');
-        throw Exception('Invalid user ID from Supabase');
-      }
-      
-      await localStorage.saveUserIdSafely(userId);
-      await localStorage.saveUserName(userData['name'] ?? 'User');
-      await localStorage.saveUserEmail(userData['email'] ?? '');
-      await localStorage.write('user_phone', userData['phone']);
-      
-      if (userData['profile'] != null && userData['profile'].toString().isNotEmpty) {
-        await localStorage.saveUserProfile(userData['profile']);
-      }
-      
-      print("✅ User data saved successfully");
-      print("   Name: ${userData['name']}");
-      print("   Email: ${userData['email']}");
-      print("   Phone: ${userData['phone']}");
+      await SaveUserData.toLocalStorage(userData: userData);
       
       if (context.mounted) {
         appMessageSuccess(
@@ -337,7 +261,6 @@ class VerifyOtpController extends GetxController {
         );
       }
       
-      // PROCESS 3: Navigate to home screen
       print("🏠 STEP 7: Navigating to Home screen");
       Get.offAll(
         () => const HomeView(),
@@ -352,12 +275,6 @@ class VerifyOtpController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // HANDLE GOOGLE USER PROFILE COMPLETION (After Phone Verification)
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Handle profile completion for Google users after phone verification
-  /// Google users need to verify phone via Firebase OTP
   Future<void> _handleGoogleUserProfileCompletion(
     firebase_auth.User firebaseUser,
     String phoneNumber,
@@ -377,10 +294,8 @@ class VerifyOtpController extends GetxController {
       print('   Email: $email');
       print('   Phone (verified): $phoneNumber');
       
-      // PROCESS 1: Insert user into Supabase users table (let Supabase generate ID)
       print('💾 PROCESS 1: Inserting user into Supabase users table');
       await supabase.from('users').insert({
-        // Don't specify 'id' - let Supabase auto-generate it
         'name': name ?? 'MEGO User',
         'email': email ?? '',
         'phone': phoneNumber,
@@ -391,7 +306,6 @@ class VerifyOtpController extends GetxController {
       
       print('✅ User profile inserted to Supabase');
       
-      // PROCESS 2: Fetch user from Supabase to get the actual ID
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('🔍 PROCESS 2: Fetching user ID from Supabase');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -402,30 +316,16 @@ class VerifyOtpController extends GetxController {
           .eq('phone', phoneNumber)
           .single();
       
-      final userId = userData['id'] as String;
-      print('✅ User ID retrieved from Supabase: $userId');
+      print('✅ User ID retrieved from Supabase: ${userData['id']}');
       
-      // PROCESS 3: Save to local storage with validation
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('💾 PROCESS 3: Saving to local storage');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      final box = GetStorage();
-      LocalStorageService localStorage = LocalStorageService(box);
-      
-      // Validate userId before saving
-      if (userId.isEmpty) {
-        throw Exception('User ID from Supabase is empty');
-      }
-      
-      await localStorage.saveUserIdSafely(userId);
-      await localStorage.saveUserName(userData['name'] ?? 'MEGO User');
-      await localStorage.saveUserEmail(userData['email'] ?? '');
-      await localStorage.write('user_phone', userData['phone']);
-      
-      if (userData['profile'] != null && userData['profile'].toString().isNotEmpty) {
-        await localStorage.saveUserProfile(userData['profile']);
-      }
+      await SaveUserData.toLocalStorage(
+        userData: userData,
+        fallbackProfile: photo,
+      );
       
       print('✅ User data saved to local storage');
       
@@ -458,11 +358,6 @@ class VerifyOtpController extends GetxController {
     }
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // RESEND FIREBASE OTP
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Resend OTP via Firebase when user doesn't receive the code
   Future<void> resendFirebaseOtp(BuildContext context) async {
     try {
       isLoading = true;
@@ -473,7 +368,6 @@ class VerifyOtpController extends GetxController {
       print("   Phone: $phoneNumber");
       print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-      // PROCESS 1: Call Firebase verifyPhoneNumber again
       await _firebaseAuth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         timeout: const Duration(seconds: 60),

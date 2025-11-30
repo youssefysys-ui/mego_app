@@ -6,10 +6,9 @@ import 'package:mego_app/core/bindings/binding.dart';
 import 'package:mego_app/core/language/local.dart';
 import 'package:mego_app/core/language/local_controller.dart';
 import 'package:mego_app/core/res/app_colors.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/local_db/local_db.dart';
 import 'features/splash/splash_router.dart';
-import 'features/splash/splash_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +21,7 @@ void main() async {
     anonKey: 'sb_publishable_mDuyLHyxQpNjGpeJj8CstQ_-XVp7GbO'
   );
   // Setup local storage
-  await setupLocalStorage();
+  await Storage.init();
   // Initialize FCM notifications
   // Get.put(FCMNotificationReceiver(), permanent: true);
   runApp(const MyApp());

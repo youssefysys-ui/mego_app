@@ -100,64 +100,50 @@ class AboutUsView extends StatelessWidget {
       child: Column(
         children: [
           // App Logo
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: SvgPicture.asset(
-              AppImages.logo,
-              width: 100,
-              height: 100,
-            ),
+          SvgPicture.asset(
+            AppImages.whiteLogo2,
+             width: 200,
+             height: 160,
           ),
           
           const SizedBox(height: 16),
           
-          // App Name with Style
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'ME',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 42,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                TextSpan(
-                  text: 'GO',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 42,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.buttonColor,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // // App Name with Style
+          // RichText(
+          //   text: TextSpan(
+          //     children: [
+          //       TextSpan(
+          //         text: 'ME',
+          //         style: TextStyle(
+          //           fontFamily: 'Montserrat',
+          //           fontSize: 42,
+          //           fontWeight: FontWeight.w900,
+          //           color: Colors.white,
+          //           fontStyle: FontStyle.italic,
+          //         ),
+          //       ),
+          //       TextSpan(
+          //         text: 'GO',
+          //         style: TextStyle(
+          //           fontFamily: 'Montserrat',
+          //           fontSize: 42,
+          //           fontWeight: FontWeight.w900,
+          //           color: AppColors.buttonColor,
+          //           fontStyle: FontStyle.italic,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           
           const SizedBox(height: 8),
           
           Text(
             'More than a ride, it\'s MEGO',
             style: TextStyle(
-              fontFamily: 'Roboto',
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+              fontFamily: 'Montserrat',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
               color: Colors.white.withValues(alpha: 0.9),
               letterSpacing: 1.2,
             ),
@@ -166,6 +152,10 @@ class AboutUsView extends StatelessWidget {
       ),
     );
   }
+
+
+
+
 
   Widget _buildAppNameSection() {
     return Column(
@@ -247,7 +237,7 @@ class AboutUsView extends StatelessWidget {
           icon: AppImages.car,
           title: 'Ride Services',
           description: 'Safe and comfortable rides with professional drivers. Book instantly and track your journey in real-time.',
-          gradient: [AppColors.primaryColor, AppColors.appSurfaceColor],
+          gradient: [AppColors.primaryColor, AppColors.primaryColor],
         ),
         
         const SizedBox(height: 16),
@@ -257,7 +247,7 @@ class AboutUsView extends StatelessWidget {
           icon: AppImages.food,
           title: 'Food Delivery',
           description: 'Order from top-rated restaurants and enjoy delicious meals delivered fast and fresh to your location.',
-          gradient: [AppColors.buttonColor, AppColors.buttonColor],
+          gradient: [AppColors.primaryColor, AppColors.primaryColor],
           //[Colors.orange.shade700, Colors.orange.shade500],
         ),
       ],
@@ -299,7 +289,11 @@ class AboutUsView extends StatelessWidget {
               icon,
               width: 40,
               height: 40,
-              color: Colors.white,
+              color:
+              //(title=='Ride Services')?
+              Colors.white
+
+                  //:AppColors.primaryColor,
             ),
           ),
           const SizedBox(width: 16),
@@ -314,8 +308,9 @@ class AboutUsView extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color:
-                    (title!='Food Delivery')?
-                    Colors.white.withValues(alpha: 0.9):AppColors.txtColor,
+                  //  (title!='Food Delivery')?
+                    Colors.white.withValues(alpha: 0.9)
+                     //   :AppColors.txtColor,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -326,8 +321,9 @@ class AboutUsView extends StatelessWidget {
                     fontSize: 14,
                     height: 1.4,
                     color:
-                    (title!='Food Delivery')?
-                    Colors.white.withValues(alpha: 0.9):AppColors.txtColor,
+                 //   (title!='Food Delivery')?
+                    Colors.white.withValues(alpha: 0.9)
+                        //:AppColors.txtColor,
                   ),
                 ),
               ],
@@ -501,7 +497,7 @@ class AboutUsView extends StatelessWidget {
 
   Widget _buildMissionSection() {
     return Padding(
-      padding: const EdgeInsets.only(left:21,right: 21,top:66),
+      padding: const EdgeInsets.only(left:21,right: 21,top:6),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(

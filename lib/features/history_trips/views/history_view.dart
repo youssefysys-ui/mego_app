@@ -45,7 +45,7 @@ class _HistoryViewState extends State<HistoryView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[700]),
                   const SizedBox(height: 16),
                   Text(
                     'Error loading trips',

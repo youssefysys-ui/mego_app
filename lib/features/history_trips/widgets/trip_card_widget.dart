@@ -1,8 +1,10 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:mego_app/core/res/app_images.dart';
 import '../../../core/res/app_colors.dart';
 import '../controllers/history_trip_controller.dart';
 
@@ -352,8 +354,9 @@ class TripHistoryCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.priceColor,
-                              AppColors.priceColor.withOpacity(0.85),
+                              AppColors.buttonColor,
+                             // priceColor,
+                              AppColors.buttonColor.withOpacity(0.85),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(10),
@@ -367,11 +370,9 @@ class TripHistoryCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              Icons.payments_rounded,
-                              size: 18,
-                              color: AppColors.whiteColor,
-                            ),
+                          SvgPicture.asset(AppImages.paymentMethodIcon,
+                            color: AppColors.primaryColor,
+                          ),
                             const SizedBox(width: 6),
                             Text(
                               trip.formattedPrice ?? 'N/A',
@@ -379,7 +380,7 @@ class TripHistoryCard extends StatelessWidget {
                                 fontFamily: 'Roboto',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.whiteColor,
+                                color: AppColors.primaryColor,
                                 letterSpacing: 0.3,
                               ),
                             ),

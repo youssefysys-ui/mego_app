@@ -23,8 +23,9 @@ class SupportCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.infoColor.withOpacity(0.08),
-            AppColors.infoColor.withOpacity(0.05),
+            AppColors.cardColor.withOpacity(0.99),
+            AppColors.backgroundColor.withOpacity(0.87),
+
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -55,14 +56,14 @@ class SupportCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.infoColor.withOpacity(0.15),
+                    color: AppColors.primaryColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: SvgPicture.asset(
                     AppImages.customerSupportIcon,
                     width: 28,
                     height: 28,
-                    color: AppColors.infoColor,
+                    color: AppColors.primaryColor,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -95,12 +96,12 @@ class SupportCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.infoColor.withOpacity(0.1),
+                    color: AppColors.buttonColor.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.arrow_forward_ios_rounded,
-                    color: AppColors.infoColor,
+                    color: AppColors.primaryColor,
                     size: 16,
                   ),
                 ),

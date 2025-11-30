@@ -8,6 +8,7 @@ import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import 'package:mego_app/features/auth/login/views/login_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
+
 import '../../core/local_db/local_db.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -144,10 +145,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // ════════════════════════════════════════════════════════════════════════
     
     // PROCESS 1: Get local storage instance
-    final localStorage = GetIt.instance<LocalStorageService>();
+
     // PROCESS 2: Check if user data exists in local_db
-    final userName = localStorage.userName;
-    final userEmail = localStorage.userEmail;
+    final userName = Storage.userName.toString();
+    final userEmail = Storage.userEmail.toString();
     
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     print("🔍 SPLASH SCREEN: Checking authentication");
@@ -156,8 +157,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     
     // PROCESS 3: Determine navigation based on local storage data
-    if (userName != null && userName.isNotEmpty && 
-        userEmail != null && userEmail.isNotEmpty) {
+    if (userName != 'null' && userName.isNotEmpty &&
+        userEmail != 'null' && userEmail.isNotEmpty) {
       // User data exists in local_db → Navigate to Home
       print("✅ User authenticated (local_db) → Home");
       Get.offAll(

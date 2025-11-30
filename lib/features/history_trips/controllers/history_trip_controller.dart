@@ -1,4 +1,5 @@
-import 'package:get_it/get_it.dart';
+
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
 import '../../../core/local_db/local_db.dart';
@@ -35,13 +36,14 @@ class HistoryTripController extends GetxController {
 
 
 
-  final localStorage = GetIt.instance<LocalStorageService>();
-  //   String   userId ='';
+
+    String   userId ='';
 
 
   /// Fetch all trips with ride request data for the current user
   Future<List<TripData>> getAllTripsWithRequestData() async {
-    String userId = localStorage.userId.toString();
+ userId = Storage.userId.toString();
+
     if (userId == 'Null') {
       error = 'User not authenticated';
       update();
@@ -84,7 +86,8 @@ class HistoryTripController extends GetxController {
 
   /// Fetch active trips (started or in_progress) with ride request data
   Future<List<TripData>> getActiveTripsWithRequestData() async {
-    String userId = localStorage.userId.toString();
+  userId = Storage.userId.toString();
+      //localStorage.userId.toString();
     if (userId == 'null') {
       error = 'User not authenticated';
       update();
@@ -126,7 +129,8 @@ class HistoryTripController extends GetxController {
 
   /// Fetch trip history (completed or cancelled) with ride request data
   Future<List<TripData>> getTripHistory() async {
-    String userId = localStorage.userId.toString();
+    String userId =Storage.userId.toString();
+
     if (userId == 'null') {
       error = 'User not authenticated';
       update();
@@ -196,59 +200,7 @@ class HistoryTripController extends GetxController {
     }
   }
 
-  /// Subscribe to real-time updates for current user's trips
-  // RealtimeChannel subscribeToTrips() {
-  //   if (currentUserId == null) {
-  //     throw Exception('User not authenticated');
-  //   }
-  //
-  //   return supabase
-  //       .channel('rides_channel')
-  //       .onPostgresChanges(
-  //     event: PostgresChangeEvent.all,
-  //     schema: 'public',
-  //     table: 'rides',
-  //     filter: PostgresChangeFilter(
-  //       type: PostgresChangeFilterType.eq,
-  //       column: 'rider_id',
-  //       value: currentUserId,
-  //     ),
-  //     callback: (payload) async {
-  //       print('Ride update received: ${payload.eventType}');
-  //
-  //       switch (payload.eventType) {
-  //         case PostgresChangeEvent.insert:
-  //         // Fetch the complete trip data including ride_request
-  //           final newTrip = await getTripById(payload.newRecord['id']);
-  //           if (newTrip != null) {
-  //             allTripsData.insert(0, newTrip);
-  //             update();
-  //           }
-  //           break;
-  //
-  //         case PostgresChangeEvent.update:
-  //         // Fetch the updated trip data including ride_request
-  //           final updatedTrip = await getTripById(payload.newRecord['id']);
-  //           if (updatedTrip != null) {
-  //             final index = allTripsData.indexWhere((t) => t.id == updatedTrip.id);
-  //             if (index != -1) {
-  //               allTripsData[index] = updatedTrip;
-  //               update();
-  //             }
-  //           }
-  //           break;
-  //
-  //         case PostgresChangeEvent.delete:
-  //           allTripsData.removeWhere((t) => t.id == payload.oldRecord['id']);
-  //           update();
-  //           break;
-  //       }
-  //     },
-  //   )
-  //       .subscribe();
-  // }
 
-  // Legacy methods for backward compatibility (if needed)
   Future<List<RideModel>> getRidesForCurrentUser() async {
     final trips = await getAllTripsWithRequestData();
     return trips.map((t) => t.ride).toList();

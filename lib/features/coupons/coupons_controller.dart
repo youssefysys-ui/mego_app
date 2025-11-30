@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/shared_models/coupon_model.dart';
 import '../../core/local_db/local_db.dart';
+import '../../core/shared_models/coupon_model.dart';
+
 
 class CouponsController extends GetxController {
   final RxList<Coupon> coupons = <Coupon>[].obs;
@@ -17,15 +17,15 @@ class CouponsController extends GetxController {
   final Rx<Coupon?> selectedCoupon = Rx<Coupon?>(null);
 
   late final SupabaseClient _supabase;
-  late final LocalStorageService _localStorage;
   String   userId ='';
 
 
   @override
   void onInit() {
-    _localStorage=GetIt.instance<LocalStorageService>();
+
     super.onInit();
-    userId = _localStorage.userId.toString();
+    userId = Storage.userId.toString();
+       // _localStorage.userId.toString();
     _supabase = Supabase.instance.client;
 
     _loadSelectedCouponFromStorage();
@@ -35,7 +35,8 @@ class CouponsController extends GetxController {
   /// Load previously selected coupon from local storage
   void _loadSelectedCouponFromStorage() {
     try {
-      final savedCoupon = _localStorage.selectedCoupon;
+      final savedCoupon = Storage.coupon;
+          //_localStorage.selectedCoupon;
       if (savedCoupon != null) {
         selectedCoupon.value = Coupon.fromJson(savedCoupon);
         print('✅ Loaded selected coupon from storage: ${selectedCoupon.value?.type}');
@@ -43,7 +44,8 @@ class CouponsController extends GetxController {
     } catch (e) {
       print('⚠️ Error loading selected coupon from storage: $e');
       // Clear invalid data
-      _localStorage.deleteSelectedCoupon();
+
+      Storage.delete.coupon();
     }
   }
 
@@ -252,12 +254,14 @@ class CouponsController extends GetxController {
     try {
       // Delete old coupon selection from local storage if exists
       if (selectedCoupon.value != null) {
-        await _localStorage.deleteSelectedCoupon();
+
+        Storage.delete.coupon();
         print('🗑️ Deleted old coupon from storage: ${selectedCoupon.value?.type}');
       }
 
       // Save new selected coupon to local storage
-      await _localStorage.saveSelectedCoupon(coupon.toJson());
+
+      Storage.save.coupon(coupon.toJson());
       print('💾 Saved new coupon to storage: ${coupon.toJson()}');
       // Update the selected coupon in memory
       selectedCoupon.value = coupon;
@@ -274,7 +278,8 @@ class CouponsController extends GetxController {
   /// Clear selected coupon
   Future<void> clearSelectedCoupon() async {
     try {
-      await _localStorage.deleteSelectedCoupon();
+
+      Storage.delete.coupon();
       selectedCoupon.value = null;
       print('🗑️ Cleared selected coupon from memory and storage');
     } catch (e) {

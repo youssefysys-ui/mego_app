@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mego_app/core/loading/loading.dart';
 import 'package:mego_app/core/res/app_images.dart';
@@ -22,12 +21,10 @@ class SideBarMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get user data from local storage
-    final localStorage = GetIt.instance<LocalStorageService>();
-    final userName = localStorage.userName ?? 'User';
-    final userEmail = localStorage.userEmail ?? 'user@example.com';
-    final userProfile = localStorage.userProfile;
-    final userPhone = localStorage.read<String>('user_phone') ?? '';
+    final userName = Storage.userName ?? 'User';
+    final userEmail = Storage.userEmail ?? 'user@example.com';
+    final userProfile = Storage.userProfile;
+    final userPhone = Storage.userPhone ?? '';
 
     return Drawer(
       backgroundColor: AppColors.drawerColor,
@@ -354,17 +351,7 @@ class SideBarMenu extends StatelessWidget {
 
         // PROCESS 5: Clear ALL local storage data
         print('💾 STEP 3: Clearing local storage data');
-        final localStorage = GetIt.instance<LocalStorageService>();
-        
-        await localStorage.deleteAuthToken();
-        await localStorage.deleteUserEmail();
-        await localStorage.deleteUserName();
-        await localStorage.deleteUserModel();
-        
-        // Also clear phone and profile if stored
-        await localStorage.delete('user_phone');
-        await localStorage.delete('user_profile');
-        
+        await Storage.logout();
         print('✅ Local storage cleared completely');
         
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

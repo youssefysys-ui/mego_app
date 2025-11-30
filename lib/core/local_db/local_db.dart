@@ -1,284 +1,271 @@
-// lib/services/local_storage_service.dart
+
+// lib/core/services/storage_service.dart
 import 'dart:math';
 import 'package:get_it/get_it.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter/widgets.dart';
-import '../shared_models/user_model.dart';
 
-/// A simple service for local persistent storage using GetStorage.
-class LocalStorageService {
-  final GetStorage _box;
+/// Global GetIt instance
+final getIt = GetIt.instance;
 
-  LocalStorageService(this._box);
+/// Global storage accessor - Use this anywhere in your app!
+/// Example: Storage.authToken or Storage.save.authToken('token123')
+class Storage {
+  Storage._(); // Private constructor to prevent instantiation
 
-  // --------- Generic methods ---------
-  Future<void> write(String key, dynamic value) async => await _box.write(key, value);
-  T? read<T>(String key) => _box.read<T>(key);
-  Future<void> delete(String key) async => await _box.remove(key);
-  Future<void> clear() async => await _box.erase();
+  static final _box = GetStorage();
 
-  // --------- Convenient shortcuts for common keys ---------
-  static const _authTokenKey = 'auth_token';
-  static const _userIdKey = 'user_id';
-  static const _email = 'user_email';
-  static const _name = 'user_name';
-  static const _userModelKey = 'user_model';
-  static const _userProfileKey = 'user_profile';
-  
-  // Location storage keys
-  static const _countryKey = 'user_country';
-  static const _cityKey = 'user_city';
-  static const _latitudeKey = 'user_latitude';
-  static const _longitudeKey = 'user_longitude';
-  static const _locationNameKey = 'user_location_name';
-  static const _fullAddressKey = 'user_full_address';
-  static const _lastLocationUpdateKey = 'last_location_update';
-  
-  // Category storage keys
-  static const _selectedCategoryIdKey = 'selected_category_id';
-  static const _selectedCategoryNameKey = 'selected_category_name';
-  static const _selectedCategoryNameEnKey = 'selected_category_name_en';
-  static const _selectedCategoryTypeKey = 'selected_category_type';
-  static const _selectedCategoryImageKey = 'selected_category_image';
-  
-  // Coupon storage key
-  static const _selectedCouponKey = 'selected_coupon';
-  
-  // Splash video tracking keys
-  static const _splashVideoShownKey = 'splash_video_shown';
-  static const _splashVideoTimestampKey = 'splash_video_timestamp';
-
-//read
-  String? get authToken => read<String>(_authTokenKey);
-  String? get userId => read<String>(_userIdKey);
-  String? get userEmail => read<String>(_email);
-  String? get userName => read<String>(_name);
-  
-  /// Get complete user model from storage
-  UserModel? get userModel {
-    final userData = read<Map<String, dynamic>>(_userModelKey);
-    return userData != null ? UserModel.fromJson(userData) : null;
-  }
-  
-  // Location read methods
-  String? get userCountry => read<String>(_countryKey);
-  String? get userCity => read<String>(_cityKey);
-  double? get userLatitude => read<double>(_latitudeKey);
-  double? get userLongitude => read<double>(_longitudeKey);
-  String? get userLocationName => read<String>(_locationNameKey);
-  String? get userFullAddress => read<String>(_fullAddressKey);
-  String? get lastLocationUpdate => read<String>(_lastLocationUpdateKey);
-  
-  // Category read methods
-  String? get selectedCategoryId => read<String>(_selectedCategoryIdKey);
-  String? get selectedCategoryName => read<String>(_selectedCategoryNameKey);
-  String? get selectedCategoryNameEn => read<String>(_selectedCategoryNameEnKey);
-  String? get selectedCategoryType => read<String>(_selectedCategoryTypeKey);
-  String? get selectedCategoryImage => read<String>(_selectedCategoryImageKey);
-  
-  // Coupon read method
-  Map<String, dynamic>? get selectedCoupon => read<Map<String, dynamic>>(_selectedCouponKey);
-  
-  // Splash video read methods
-  bool? get splashVideoShown => read<bool>(_splashVideoShownKey);
-  String? get splashVideoTimestamp => read<String>(_splashVideoTimestampKey);
-  String? get userProfile => read<String>(_userProfileKey);
-
-//write
-  Future<void> saveAuthToken(String token) async => await write(_authTokenKey, token);
-  Future<void> saveUserId(String userId) async => await write(_userIdKey, userId);
-  Future<void> saveUserName(String name) async => await write(_name, name);
-  Future<void> saveUserEmail(String email) async => await write(_email, email);
-  
-  /// Validate and save user ID with strict checks
-  /// Throws exception if userId is null or empty
-  Future<void> saveUserIdSafely(String? userId) async {
-    if (userId == null || userId.isEmpty) {
-      print('❌ ERROR: Cannot save null or empty user ID');
-      throw Exception('User ID is required and cannot be empty');
-    }
-    
-    await saveUserId(userId);
-    print('✅ User ID saved successfully: $userId');
-  }
-  
-  /// Save complete user model to storage
-  Future<void> saveUserModel(UserModel user) async {
-    await write(_userModelKey, user.toJson());
-    // Also save individual fields for backward compatibility
-    await saveAuthToken(user.id);
-    await saveUserName(user.name);
-    await saveUserEmail(user.email);
-  }
-  
-  // Location write methods
-  Future<void> saveUserCountry(String country) async => await write(_countryKey, country);
-  Future<void> saveUserCity(String city) async => await write(_cityKey, city);
-  Future<void> saveUserLatitude(double latitude) async => await write(_latitudeKey, latitude);
-  Future<void> saveUserLongitude(double longitude) async => await write(_longitudeKey, longitude);
-  Future<void> saveUserLocationName(String locationName) async => await write(_locationNameKey, locationName);
-  Future<void> saveUserFullAddress(String fullAddress) async => await write(_fullAddressKey, fullAddress);
-  Future<void> saveLastLocationUpdate(String timestamp) async => await write(_lastLocationUpdateKey, timestamp);
-  
-  // Category write methods
-  Future<void> saveSelectedCategoryId(String categoryId) async => await write(_selectedCategoryIdKey, categoryId);
-  Future<void> saveSelectedCategoryName(String categoryName) async => await write(_selectedCategoryNameKey, categoryName);
-  Future<void> saveSelectedCategoryNameEn(String categoryNameEn) async => await write(_selectedCategoryNameEnKey, categoryNameEn);
-  Future<void> saveSelectedCategoryType(String categoryType) async => await write(_selectedCategoryTypeKey, categoryType);
-  Future<void> saveSelectedCategoryImage(String categoryImage) async => await write(_selectedCategoryImageKey, categoryImage);
-  
-  // Coupon write method
-  Future<void> saveSelectedCoupon(Map<String, dynamic> coupon) async => await write(_selectedCouponKey, coupon);
-  
   // ════════════════════════════════════════════════════════════════════════
-  // COUPON VALIDATION & ACTIVATION CHECK
+  // SETUP - Call once at app startup
   // ════════════════════════════════════════════════════════════════════════
-  
-  /// Check if a valid coupon exists in local storage and return it
-  /// Returns null if no coupon exists, is expired, or is inactive
-  Map<String, dynamic>? getValidActiveCoupon() {
+
+  static Future<void> init() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await GetStorage.init();
+    print('✅ Storage initialized');
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // SAVE - Access with Storage.save.xxx()
+  // ════════════════════════════════════════════════════════════════════════
+
+  static final save = _StorageWrite._();
+
+  // ════════════════════════════════════════════════════════════════════════
+  // GET - Direct property access with Storage.xxx
+  // ════════════════════════════════════════════════════════════════════════
+
+  // Auth & User
+  static String? get authToken => _box.read('auth_token');
+  static String? get userId => _box.read('user_id');
+  static String? get userName => _box.read('user_name');
+  static String? get userEmail => _box.read('user_email');
+  static String? get userPhone => _box.read('user_phone');
+  static String? get userProfile => _box.read('user_profile');
+
+  // Location
+  static String? get country => _box.read('user_country');
+  static String? get city => _box.read('user_city');
+  static double? get latitude => _box.read('user_latitude');
+  static double? get longitude => _box.read('user_longitude');
+  static String? get locationName => _box.read('user_location_name');
+  static String? get fullAddress => _box.read('user_full_address');
+  static String? get lastLocationUpdate => _box.read('last_location_update');
+
+  // Category
+  static String? get categoryId => _box.read('selected_category_id');
+  static String? get categoryName => _box.read('selected_category_name');
+  static String? get categoryNameEn => _box.read('selected_category_name_en');
+  static String? get categoryType => _box.read('selected_category_type');
+  static String? get categoryImage => _box.read('selected_category_image');
+
+  // Coupon
+  static Map<String, dynamic>? get coupon => _box.read('selected_coupon');
+
+  // Splash Video
+  static bool? get splashVideoShown => _box.read('splash_video_shown');
+  static String? get splashVideoTimestamp => _box.read('splash_video_timestamp');
+
+  // Language
+  static String? get language => _box.read('app_language');
+
+  // ════════════════════════════════════════════════════════════════════════
+  // DELETE - Access with Storage.delete.xxx()
+  // ════════════════════════════════════════════════════════════════════════
+
+  static final delete = _StorageDelete._();
+
+  // ════════════════════════════════════════════════════════════════════════
+  // HELPER METHODS
+  // ════════════════════════════════════════════════════════════════════════
+
+  /// Check if user is authenticated
+  static bool get isLoggedIn => authToken != null && userId != null;
+
+  /// Check if location data exists
+  static bool get hasLocation => latitude != null && longitude != null;
+
+  /// Check if category is selected
+  static bool get hasCategory => categoryId != null;
+
+  /// Check if user has complete profile data
+  static bool get hasCompleteProfile {
+    return userName != null &&
+        userName!.isNotEmpty &&
+        userEmail != null &&
+        userEmail!.isNotEmpty &&
+        userName != 'user' &&
+        userName != 'المستخدم';
+  }
+
+  /// Check if user name needs to be fetched
+  static bool get needsUserNameFetch {
+    final name = userName;
+    return name == null ||
+        name.isEmpty ||
+        name == 'user' ||
+        name == 'المستخدم';
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // COUPON VALIDATION
+  // ════════════════════════════════════════════════════════════════════════
+
+  /// Get valid active coupon (checks expiration and active status)
+  static Map<String, dynamic>? get validCoupon {
     try {
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("🎫 CHECKING COUPON IN LOCAL_DB");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      
-      // STEP 1: Get coupon from local storage
-      final couponData = selectedCoupon;
-      
-      if (couponData == null) {
-        print("❌ No coupon found in local_db");
-        return null;
-      }
-      
-      print("✅ Coupon found in local_db");
-      print("   ID: ${couponData['id']}");
-      print("   Type: ${couponData['type']}");
-      
-      // STEP 2: Check if coupon is active
+      final couponData = coupon;
+      if (couponData == null) return null;
+
+      // Check if active
       final isActive = couponData['active'] as bool? ?? false;
-      
       if (!isActive) {
-        print("❌ Coupon is INACTIVE");
-        print("   Removing inactive coupon from local_db");
-        deleteSelectedCoupon();
+        delete.coupon();
         return null;
       }
-      
-      print("✅ Coupon is ACTIVE");
-      
-      // STEP 3: Check if coupon is expired
+
+      // Check expiration
       final validUntilStr = couponData['valid_until'] as String?;
-      
       if (validUntilStr == null) {
-        print("❌ Coupon has no expiration date");
-        deleteSelectedCoupon();
+        delete.coupon();
         return null;
       }
-      
+
       final validUntil = DateTime.parse(validUntilStr);
-      final now = DateTime.now();
-      
-      if (now.isAfter(validUntil)) {
-        print("❌ Coupon is EXPIRED");
-        print("   Valid Until: $validUntil");
-        print("   Current Time: $now");
-        print("   Removing expired coupon from local_db");
-        deleteSelectedCoupon();
+      if (DateTime.now().isAfter(validUntil)) {
+        delete.coupon();
         return null;
       }
-      
-      final remainingTime = validUntil.difference(now);
-      print("✅ Coupon is NOT EXPIRED");
-      print("   Valid Until: $validUntil");
-      print("   Remaining Time: ${remainingTime.inHours} hours");
-      
-      // STEP 4: Coupon is valid and active
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      print("🎉 COUPON IS VALID AND ACTIVE");
-      print("   Can be applied to the current transaction");
-      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-      
+
       return couponData;
-      
     } catch (e) {
-      print("❌ ERROR checking coupon: $e");
-      print("   Removing invalid coupon from local_db");
-      deleteSelectedCoupon();
+      delete.coupon();
       return null;
     }
   }
-  
-  /// Check if user has an active, valid coupon
-  bool hasValidCoupon() {
-    final coupon = getValidActiveCoupon();
-    return coupon != null;
+
+  /// Check if user has valid coupon
+  static bool get hasValidCoupon => validCoupon != null;
+
+  /// Get coupon discount percentage
+  static double get couponDiscount {
+    final couponData = validCoupon;
+    if (couponData == null) return 0.0;
+
+    final type = couponData['type'] as String;
+
+    if (type.contains('PERCENT')) {
+      final percentStr = type.replaceAll('_PERCENT', '').replaceAll('PERCENT', '');
+      return double.tryParse(percentStr) ?? 0.0;
+    } else if (type == 'FREE_RIDE') {
+      return 100.0;
+    }
+
+    return 0.0;
   }
-  
-  /// Get coupon discount percentage or amount
-  /// Returns 0 if no valid coupon exists
-  double getCouponDiscountValue() {
+
+  /// Apply coupon discount to price
+  static double applyDiscount(double price) {
+    final discount = couponDiscount;
+    if (discount <= 0) return price;
+
+    final discountAmount = price * (discount / 100);
+    return price - discountAmount;
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // SPLASH VIDEO
+  // ════════════════════════════════════════════════════════════════════════
+
+  /// Check if splash video should be shown (every 5 days)
+  static bool get shouldShowSplash {
+    final shown = splashVideoShown;
+    final timestamp = splashVideoTimestamp;
+
+    if (shown == null || !shown || timestamp == null) return true;
+
     try {
-      final coupon = getValidActiveCoupon();
-      
-      if (coupon == null) {
-        return 0.0;
+      final lastShown = DateTime.parse(timestamp);
+      final daysSince = DateTime.now().difference(lastShown).inDays;
+
+      if (daysSince >= 5) {
+        delete.splashVideoData();
+        return true;
       }
-      
-      final type = coupon['type'] as String;
-      
-      // Parse discount from coupon type
-      // Example types: "10_PERCENT", "FREE_RIDE", "50_PERCENT"
-      if (type.contains('PERCENT')) {
-        final percentStr = type.replaceAll('_PERCENT', '').replaceAll('PERCENT', '');
-        return double.tryParse(percentStr) ?? 0.0;
-      } else if (type == 'FREE_RIDE') {
-        return 100.0; // 100% discount
-      }
-      
-      return 0.0;
+
+      return false;
     } catch (e) {
-      print("❌ ERROR getting coupon discount: $e");
-      return 0.0;
+      return true;
     }
   }
-  
-  /// Apply coupon discount to a price
-  /// Returns the discounted price
-  double applyCouponDiscount(double originalPrice) {
-    final discountPercent = getCouponDiscountValue();
-    
-    if (discountPercent <= 0) {
-      return originalPrice;
-    }
-    
-    final discountAmount = originalPrice * (discountPercent / 100);
-    final finalPrice = originalPrice - discountAmount;
-    
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    print("💰 APPLYING COUPON DISCOUNT");
-    print("   Original Price: \$${originalPrice.toStringAsFixed(2)}");
-    print("   Discount: ${discountPercent.toStringAsFixed(0)}%");
-    print("   Discount Amount: \$${discountAmount.toStringAsFixed(2)}");
-    print("   Final Price: \$${finalPrice.toStringAsFixed(2)}");
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-    
-    return finalPrice;
+
+  // ════════════════════════════════════════════════════════════════════════
+  // LOCATION HELPERS
+  // ════════════════════════════════════════════════════════════════════════
+
+  /// Calculate distance from stored location (in km)
+  static double? distanceFrom(double newLat, double newLng) {
+    final lat = latitude;
+    final lng = longitude;
+    if (lat == null || lng == null) return null;
+
+    const double earthRadius = 6371;
+    final double latDiff = (newLat - lat) * (pi / 180);
+    final double lngDiff = (newLng - lng) * (pi / 180);
+
+    final double a = pow(sin(latDiff / 2), 2) +
+        cos(lat * pi / 180) * cos(newLat * pi / 180) * pow(sin(lngDiff / 2), 2);
+
+    final double c = 2 * asin(sqrt(a));
+    return earthRadius * c;
   }
-  
-  // Splash video write methods
-  Future<void> saveSplashVideoShown(bool shown) async => await write(_splashVideoShownKey, shown);
-  Future<void> saveSplashVideoTimestamp(String timestamp) async => await write(_splashVideoTimestampKey, timestamp);
-  Future<void> saveUserProfile(String profile) async => await write(_userProfileKey, profile);
-  
-  /// Mark splash video as shown with current timestamp
-  Future<void> markSplashVideoAsShown() async {
-    await saveSplashVideoShown(true);
-    await saveSplashVideoTimestamp(DateTime.now().toIso8601String());
-    print('✅ Splash video marked as shown at ${DateTime.now()}');
+
+  // ════════════════════════════════════════════════════════════════════════
+  // CLEAR ALL
+  // ════════════════════════════════════════════════════════════════════════
+
+  /// Complete logout - clears all data except language
+  static Future<void> logout() async {
+    final lang = language; // Preserve language
+    await _box.erase();
+    if (lang != null) await save.language(lang);
+    print('✅ Logged out - all data cleared');
   }
-  
-  /// Save complete location data in one call
-  Future<void> saveLocationData({
+
+  /// Nuclear option - clear everything
+  static Future<void> clearAll() async {
+    await _box.erase();
+    print('✅ All storage cleared');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// WRITE OPERATIONS CLASS
+// ════════════════════════════════════════════════════════════════════════
+
+class _StorageWrite {
+  _StorageWrite._();
+
+  final _box = GetStorage();
+
+  // Auth & User
+  Future<void> authToken(String token) => _box.write('auth_token', token);
+  Future<void> userId(String id) => _box.write('user_id', id);
+  Future<void> userName(String name) => _box.write('user_name', name);
+  Future<void> userEmail(String email) => _box.write('user_email', email);
+  Future<void> userPhone(String phone) => _box.write('user_phone', phone);
+  Future<void> userProfile(String profile) => _box.write('user_profile', profile);
+
+  // Location
+  Future<void> country(String country) => _box.write('user_country', country);
+  Future<void> city(String city) => _box.write('user_city', city);
+  Future<void> latitude(double lat) => _box.write('user_latitude', lat);
+  Future<void> longitude(double lng) => _box.write('user_longitude', lng);
+  Future<void> locationName(String name) => _box.write('user_location_name', name);
+  Future<void> fullAddress(String address) => _box.write('user_full_address', address);
+
+  /// Save complete location data at once
+  Future<void> location({
     required String country,
     required String city,
     required double latitude,
@@ -286,225 +273,208 @@ class LocalStorageService {
     String? locationName,
     String? fullAddress,
   }) async {
-    await saveUserCountry(country);
-    await saveUserCity(city);
-    await saveUserLatitude(latitude);
-    await saveUserLongitude(longitude);
-    if (locationName != null) await saveUserLocationName(locationName);
-    if (fullAddress != null) await saveUserFullAddress(fullAddress);
-    await saveLastLocationUpdate(DateTime.now().toIso8601String());
-  }
-  
-  /// Save complete category data in one call
-  Future<void> saveCategoryData({
-    required String categoryId,
-    required String categoryName,
-    required String categoryNameEn,
-    required String categoryType,
-    String? categoryImage,
-  }) async {
-    await saveSelectedCategoryId(categoryId);
-    await saveSelectedCategoryName(categoryName);
-    await saveSelectedCategoryNameEn(categoryNameEn);
-    await saveSelectedCategoryType(categoryType);
-    if (categoryImage != null) await saveSelectedCategoryImage(categoryImage);
+    await this.country(country);
+    await this.city(city);
+    await this.latitude(latitude);
+    await this.longitude(longitude);
+    if (locationName != null) await this.locationName(locationName);
+    if (fullAddress != null) await this.fullAddress(fullAddress);
+    await _box.write('last_location_update', DateTime.now().toIso8601String());
   }
 
-//delete
-  Future<void> deleteAuthToken() async => await delete(_authTokenKey);
-  Future<void> deleteUserName() async => await delete(_name);
-  Future<void> deleteUserEmail() async => await delete(_email);
-  Future<void> deleteUserModel() async => await delete(_userModelKey);
-  Future<void> deleteUserProfile() async => await delete(_userProfileKey);
-  
-  // Location delete methods
-  Future<void> deleteUserCountry() async => await delete(_countryKey);
-  Future<void> deleteUserCity() async => await delete(_cityKey);
-  Future<void> deleteUserLatitude() async => await delete(_latitudeKey);
-  Future<void> deleteUserLongitude() async => await delete(_longitudeKey);
-  Future<void> deleteUserLocationName() async => await delete(_locationNameKey);
-  Future<void> deleteUserFullAddress() async => await delete(_fullAddressKey);
-  Future<void> deleteLastLocationUpdate() async => await delete(_lastLocationUpdateKey);
-  
-  // Category delete methods
-  Future<void> deleteSelectedCategoryId() async => await delete(_selectedCategoryIdKey);
-  Future<void> deleteSelectedCategoryName() async => await delete(_selectedCategoryNameKey);
-  Future<void> deleteSelectedCategoryNameEn() async => await delete(_selectedCategoryNameEnKey);
-  Future<void> deleteSelectedCategoryType() async => await delete(_selectedCategoryTypeKey);
-  
-  // Coupon delete method
-  Future<void> deleteSelectedCoupon() async => await delete(_selectedCouponKey);
-  Future<void> deleteSelectedCategoryImage() async => await delete(_selectedCategoryImageKey);
-  
-  // Splash video delete methods
-  Future<void> deleteSplashVideoShown() async => await delete(_splashVideoShownKey);
-  Future<void> deleteSplashVideoTimestamp() async => await delete(_splashVideoTimestampKey);
-  
-  /// Clear splash video data
-  Future<void> clearSplashVideoData() async {
-    await deleteSplashVideoShown();
-    await deleteSplashVideoTimestamp();
-    print('🗑️ Splash video data cleared');
+  // Category
+  Future<void> categoryId(String id) => _box.write('selected_category_id', id);
+  Future<void> categoryName(String name) => _box.write('selected_category_name', name);
+  Future<void> categoryNameEn(String name) => _box.write('selected_category_name_en', name);
+  Future<void> categoryType(String type) => _box.write('selected_category_type', type);
+  Future<void> categoryImage(String image) => _box.write('selected_category_image', image);
+
+  /// Save complete category data at once
+  Future<void> category({
+    required String id,
+    required String name,
+    required String nameEn,
+    required String type,
+    String? image,
+  }) async {
+    await categoryId(id);
+    await categoryName(name);
+    await categoryNameEn(nameEn);
+    await categoryType(type);
+    if (image != null) await categoryImage(image);
   }
-  
-  /// Delete all location data
-  Future<void> deleteAllLocationData() async {
-    await deleteUserCountry();
-    await deleteUserCity();
-    await deleteUserLatitude();
-    await deleteUserLongitude();
-    await deleteUserLocationName();
-    await deleteUserFullAddress();
-    await deleteLastLocationUpdate();
+
+  // Coupon
+  Future<void> coupon(Map<String, dynamic> coupon) => _box.write('selected_coupon', coupon);
+
+  // Splash
+  Future<void> splashShown() async {
+    await _box.write('splash_video_shown', true);
+    await _box.write('splash_video_timestamp', DateTime.now().toIso8601String());
   }
-  
-  /// Delete all category data
-  Future<void> deleteAllCategoryData() async {
-    await deleteSelectedCategoryId();
-    await deleteSelectedCategoryName();
-    await deleteSelectedCategoryNameEn();
-    await deleteSelectedCategoryType();
-    await deleteSelectedCategoryImage();
-  }
-  
-  /// Check if location data exists
-  bool hasLocationData() {
-    return userLatitude != null && userLongitude != null;
-  }
-  
-  /// Check if category data exists
-  bool hasCategoryData() {
-    return selectedCategoryId != null && selectedCategoryType != null;
-  }
-  
-  /// Check if user name is empty or null and needs to be fetched
-  bool needsUserNameFetch() {
-    final name = userName;
-    return name == null || name.isEmpty || name == 'user' || name == 'المستخدم';
-  }
-  
-  /// Check if user has complete profile data
-  bool hasCompleteUserData() {
-    return userName != null && userName!.isNotEmpty && 
-           userEmail != null && userEmail!.isNotEmpty &&
-           userName != 'user' && userName != 'المستخدم';
-  }
-  
-  // ════════════════════════════════════════════════════════════════════════
-  // LOGOUT & CLEAR ALL USER DATA
-  // ════════════════════════════════════════════════════════════════════════
-  
-  /// Delete user ID from local storage
-  Future<void> deleteUserId() async => await delete(_userIdKey);
-  
-  /// Delete all user authentication data (logout functionality)
-  Future<void> deleteAllUserData() async {
-    await deleteAuthToken();
-    await deleteUserId();
-    await deleteUserName();
-    await deleteUserEmail();
-    await deleteUserModel();
-    await delete('user_phone');
-    await delete('user_profile');
-    print('✅ All user data deleted from local storage');
-  }
-  
-  /// Complete logout - clears all user and app data
-  /// Call this when user logs out to reset everything
-  Future<void> logout() async {
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    print("🗑️ LOCAL_DB: Starting complete logout cleanup");
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
-    await deleteAllUserData();
-    await deleteAllLocationData();  
-    await deleteAllCategoryData();
-    
-    // Keep language preference during logout
-    print("✅ LOCAL_DB: All user data cleared (language preserved)");
-    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-  }
-  
-  /// Get location distance between stored and new coordinates
-  double? getLocationDistance(double newLat, double newLng) {
-    final storedLat = userLatitude;
-    final storedLng = userLongitude;
-    
-    if (storedLat == null || storedLng == null) return null;
-    
-    // Calculate distance using Haversine formula (simplified)
-    const double earthRadius = 6371; // km
-    final double latDiff = (newLat - storedLat) * (pi / 180);
-    final double lngDiff = (newLng - storedLng) * (pi / 180);
-    
-    final double a = pow(sin(latDiff / 2), 2) +
-        cos(storedLat * pi / 180) * cos(newLat * pi / 180) *
-        pow(sin(lngDiff / 2), 2);
-    
-    final double c = 2 * asin(sqrt(a));
-    return earthRadius * c;
-  }
-  
-  /// Check if splash video should be shown (returns true if video should play)
-  /// Video plays if: never shown before OR last shown more than 5 days ago
-  bool shouldShowSplashVideo() {
-    final shown = this.splashVideoShown;
-    final timestamp = this.splashVideoTimestamp;
-    
-    // If never shown before, show the video
-    if (shown == null || !shown || timestamp == null) {
-      print('🎬 Splash video should show: Never shown before');
-      return true;
-    }
-    
-    try {
-      final lastShownDate = DateTime.parse(timestamp);
-      final daysSinceShown = DateTime.now().difference(lastShownDate).inDays;
-      
-      // If more than 5 days, clear old data and show video again
-      if (daysSinceShown >= 5) {
-        print('🎬 Splash video should show: Last shown $daysSinceShown days ago');
-        this.clearSplashVideoData(); // Auto-remove after 5 days
-        return true;
-      }
-      
-      print('⏭️ Skip splash video: Last shown $daysSinceShown days ago');
-      return false;
-    } catch (e) {
-      print('⚠️ Error parsing splash video timestamp: $e');
-      // If error parsing, show video to be safe
-      return true;
-    }
-  }
+
+  // Language
+  Future<void> language(String lang) => _box.write('app_language', lang);
+
+  // Generic write
+  Future<void> custom(String key, dynamic value) => _box.write(key, value);
 }
 
-/// Global service locator
-final GetIt getIt = GetIt.instance;
+// ════════════════════════════════════════════════════════════════════════
+// DELETE OPERATIONS CLASS
+// ════════════════════════════════════════════════════════════════════════
 
-/// Global shortcut to access storage anywhere without boilerplate
-LocalStorageService get storage => getIt<LocalStorageService>();
+class _StorageDelete {
+  _StorageDelete._();
 
-/// Call this once at app startup (before runApp)
-Future<void> setupLocalStorage() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is ready
-  await GetStorage.init();                   // Initialize GetStorage
-  getIt.registerLazySingleton<LocalStorageService>(
-    () => LocalStorageService(GetStorage()),
-  );
+  final _box = GetStorage();
+
+  // Auth & User
+  Future<void> authToken() => _box.remove('auth_token');
+  Future<void> userId() => _box.remove('user_id');
+  Future<void> userName() => _box.remove('user_name');
+  Future<void> userEmail() => _box.remove('user_email');
+  Future<void> userPhone() => _box.remove('user_phone');
+  Future<void> userProfile() => _box.remove('user_profile');
+
+  Future<void> allUserData() async {
+    await authToken();
+    await userId();
+    await userName();
+    await userEmail();
+    await userPhone();
+    await userProfile();
+  }
+
+  // Location
+  Future<void> country() => _box.remove('user_country');
+  Future<void> city() => _box.remove('user_city');
+  Future<void> latitude() => _box.remove('user_latitude');
+  Future<void> longitude() => _box.remove('user_longitude');
+  Future<void> locationName() => _box.remove('user_location_name');
+  Future<void> fullAddress() => _box.remove('user_full_address');
+
+  Future<void> allLocationData() async {
+    await country();
+    await city();
+    await latitude();
+    await longitude();
+    await locationName();
+    await fullAddress();
+    await _box.remove('last_location_update');
+  }
+
+  // Category
+  Future<void> categoryId() => _box.remove('selected_category_id');
+  Future<void> categoryName() => _box.remove('selected_category_name');
+  Future<void> categoryNameEn() => _box.remove('selected_category_name_en');
+  Future<void> categoryType() => _box.remove('selected_category_type');
+  Future<void> categoryImage() => _box.remove('selected_category_image');
+
+  Future<void> allCategoryData() async {
+    await categoryId();
+    await categoryName();
+    await categoryNameEn();
+    await categoryType();
+    await categoryImage();
+  }
+
+  // Coupon
+  Future<void> coupon() => _box.remove('selected_coupon');
+
+  // Splash
+  Future<void> splashVideoData() async {
+    await _box.remove('splash_video_shown');
+    await _box.remove('splash_video_timestamp');
+  }
+
+  // Language
+  Future<void> language() => _box.remove('app_language');
+
+  // Generic delete
+  Future<void> custom(String key) => _box.remove(key);
 }
 
 
 /*
-// Write
-await storage.saveAuthToken('abcd1234');
+═══════════════════════════════════════════════════════════════════════════
+USAGE EXAMPLES - SUPER SIMPLE! 🚀
+═══════════════════════════════════════════════════════════════════════════
 
-// Read
-final token = storage.authToken;
+// 1. INITIALIZE (in main.dart before runApp)
+await Storage.init();
 
-// Delete
-await storage.deleteAuthToken();
+// 2. SAVE DATA - One liner!
+await Storage.save.authToken('abc123');
+await Storage.save.userName('Ahmed');
+await Storage.save.latitude(30.0444);
 
-// Clear all local data
-await storage.clear();
+// Save multiple at once
+await Storage.save.location(
+  country: 'Egypt',
+  city: 'Cairo',
+  latitude: 30.0444,
+  longitude: 31.2357,
+);
 
+// 3. GET DATA - Direct property access!
+final token = Storage.authToken;           // String?
+final name = Storage.userName;             // String?
+final lat = Storage.latitude;              // double?
+final coupon = Storage.validCoupon;        // Map<String, dynamic>?
+
+// 4. CHECK STATUS
+if (Storage.isLoggedIn) {
+  print('User is logged in!');
+}
+
+if (Storage.hasValidCoupon) {
+  final discount = Storage.couponDiscount;  // double
+  final finalPrice = Storage.applyDiscount(100.0);
+}
+
+if (Storage.shouldShowSplash) {
+  // Show splash video
+  await Storage.save.splashShown();
+}
+
+// 5. DELETE DATA
+await Storage.delete.authToken();
+await Storage.delete.allUserData();
+await Storage.delete.allLocationData();
+
+// 6. LOGOUT
+await Storage.logout();  // Clears everything except language
+
+═══════════════════════════════════════════════════════════════════════════
+USE ANYWHERE IN YOUR APP - NO IMPORTS NEEDED (after initial setup)!
+═══════════════════════════════════════════════════════════════════════════
+
+// In any widget:
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text('Hello ${Storage.userName ?? "Guest"}!');
+  }
+}
+
+// In any controller:
+class HomeController extends GetxController {
+  void loadUserData() {
+    if (Storage.isLoggedIn) {
+      final userId = Storage.userId;
+      // Do something
+    }
+  }
+}
+
+// In any service:
+class ApiService {
+  Future<Response> makeRequest() async {
+    final token = Storage.authToken;
+    // Use token
+  }
+}
+
+═══════════════════════════════════════════════════════════════════════════
 */

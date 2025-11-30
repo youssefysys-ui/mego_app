@@ -1,18 +1,15 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
 import 'package:mego_app/features/trip_tracking&completed&rating/views/trip_completion_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/local_db/local_db.dart';
 
 class TripTrackingController extends GetxController {
   final UserRideData userRideData;
@@ -297,7 +294,7 @@ class TripTrackingController extends GetxController {
         _stopCountdown();
         stopTripSimulation();
         // Clear saved state when ride is completed
-        clearRidingState();
+      //  clearRidingState();
         
         // Remove coupon from local storage and deactivate in Supabase
         removeCouponAfterRideEnd();
@@ -1032,7 +1029,7 @@ class TripTrackingController extends GetxController {
         'tripType': 'passenger_ride', // Identify this as passenger ride
       };
       
-      await storage.write('current_riding_state', ridingStateData);
+     // await storage.write('current_riding_state', ridingStateData);
       print('💾 Current riding state saved successfully - Ride ID: $rideId');
       
     } catch (e) {
@@ -1041,48 +1038,48 @@ class TripTrackingController extends GetxController {
   }
   
   /// Check if there's an active riding state and if ride is still ongoing
-  static Future<bool> hasActiveRidingState() async {
-    try {
-      final ridingStateData = await storage.read('current_riding_state');
-      if (ridingStateData == null) return false;
-      
-      final savedAt = DateTime.parse(ridingStateData['savedAt']);
-      final timeDifference = DateTime.now().difference(savedAt);
-      final rideStatus = ridingStateData['rideStatus'] as String?;
-      
-      // Only restore if ride is not completed/cancelled and saved within last 12 hours
-      final isRideOngoing = rideStatus != null && 
-          !['completed', 'cancelled', 'finished'].contains(rideStatus.toLowerCase());
-      
-      return isRideOngoing && timeDifference.inHours < 12;
-    } catch (e) {
-      print('❌ Error checking active riding state: $e');
-      return false;
-    }
-  }
+  // static Future<bool> hasActiveRidingState() async {
+  //   try {
+  //     final ridingStateData = await storage.read('current_riding_state');
+  //     if (ridingStateData == null) return false;
+  //
+  //     final savedAt = DateTime.parse(ridingStateData['savedAt']);
+  //     final timeDifference = DateTime.now().difference(savedAt);
+  //     final rideStatus = ridingStateData['rideStatus'] as String?;
+  //
+  //     // Only restore if ride is not completed/cancelled and saved within last 12 hours
+  //     final isRideOngoing = rideStatus != null &&
+  //         !['completed', 'cancelled', 'finished'].contains(rideStatus.toLowerCase());
+  //
+  //     return isRideOngoing && timeDifference.inHours < 12;
+  //   } catch (e) {
+  //     print('❌ Error checking active riding state: $e');
+  //     return false;
+  //   }
+  // }
   
   /// Get active riding state from local storage
-  static Future<Map<String, dynamic>?> getActiveRidingState() async {
-    try {
-      final ridingStateData = await storage.read('current_riding_state');
-      if (ridingStateData == null) return null;
-      
-      return Map<String, dynamic>.from(ridingStateData);
-    } catch (e) {
-      print('❌ Error getting active riding state: $e');
-      return null;
-    }
-  }
-  
-  /// Clear saved riding state (call when ride is completed/cancelled)
-  Future<void> clearRidingState() async {
-    try {
-      await storage.delete('current_riding_state');
-      print('🗑️ Riding state cleared');
-    } catch (e) {
-      print('❌ Error clearing riding state: $e');
-    }
-  }
+  // static Future<Map<String, dynamic>?> getActiveRidingState() async {
+  //   try {
+  //     final ridingStateData = await storage.read('current_riding_state');
+  //     if (ridingStateData == null) return null;
+  //
+  //     return Map<String, dynamic>.from(ridingStateData);
+  //   } catch (e) {
+  //     print('❌ Error getting active riding state: $e');
+  //     return null;
+  //   }
+  // }
+  //
+  // /// Clear saved riding state (call when ride is completed/cancelled)
+  // Future<void> clearRidingState() async {
+  //   try {
+  //     await storage.delete('current_riding_state');
+  //     print('🗑️ Riding state cleared');
+  //   } catch (e) {
+  //     print('❌ Error clearing riding state: $e');
+  //   }
+  // }
   
   /// Restore controller state from saved riding data
   Future<void> restoreFromSavedRidingState(Map<String, dynamic> savedState) async {
@@ -1264,10 +1261,11 @@ class TripTrackingController extends GetxController {
   Future<void> removeCouponAfterRideEnd() async {
     try {
       // Get localStorage instance
-      final localStorage = GetIt.instance<LocalStorageService>();
+
       
       // Get coupon JSON from local storage
-      final couponJson = localStorage.selectedCoupon;
+      final couponJson =Storage.coupon;
+        //  localStorage.selectedCoupon;
       
       // Check if a coupon exists in local storage
       if (couponJson == null) {
@@ -1294,7 +1292,8 @@ class TripTrackingController extends GetxController {
       print('✅ Coupon deactivated in Supabase');
 
       // 2. Remove from local storage
-      await localStorage.deleteSelectedCoupon();
+      await Storage.delete.coupon();
+      //localStorage.deleteSelectedCoupon();
       print('✅ Coupon removed from local storage');
 
       print('🎉 Coupon successfully removed after ride completion');

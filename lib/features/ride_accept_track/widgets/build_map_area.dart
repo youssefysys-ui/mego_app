@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mego_app/core/res/app_colors.dart';
+import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_models/ride_model.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/features/ride_accept_track/controllers/rider_accept_track_controller.dart';
@@ -270,9 +272,12 @@ class BuildMapArea extends StatelessWidget {
                     
                     return FloatingActionButton(
                       mini: true,
-                      backgroundColor: const Color(0xFF8B1538), // Burgundy color matching screenshot
+                      backgroundColor: AppColors.backgroundColor, // Burgundy color matching screenshot
                       onPressed: controller.centerMapOnDriver,
-                      child: const Icon(Icons.directions_car, color: Colors.white),
+                      child: SvgPicture.asset(
+                        AppImages.redCar
+                      )
+                      //const Icon(Icons.directions_car, color: Colors.white),
                     );
                   },
                 ),
@@ -280,9 +285,13 @@ class BuildMapArea extends StatelessWidget {
                 // Center on destination button
                 FloatingActionButton(
                   mini: true,
-                  backgroundColor: const Color(0xFF8B1538), // Burgundy color matching screenshot
+                  backgroundColor: AppColors.backgroundColor, // Burgundy color matching screenshot
                   onPressed: controller.centerMapOnDestination,
-                  child: const Icon(Icons.location_on, color: Colors.white),
+                  child: SvgPicture.asset(
+                      AppImages.locationIcon
+                  )
+
+                  //const Icon(Icons.location_on, color: Colors.white),
                 ),
               ],
             ),

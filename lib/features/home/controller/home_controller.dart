@@ -1,11 +1,12 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mego_app/core/loading/loading.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/local_db/local_db.dart';
 import '../../search_places & calculation/controllers/search_places_controller.dart';
 
 
@@ -82,15 +83,15 @@ class HomeController extends GetxController {
   Future<void> getLastUserDropOffLocation() async {
     try {
       // Get current user from local storage
-      final localDb = LocalStorageService(GetStorage());
-      final userModel = localDb.userModel;
+
 
       // if (userModel == null) {
       //   print('❌ No user found in local storage');
       //   return;
       // }
 
-      final currentUserId =localDb.userId.toString();
+      final currentUserId =Storage.userId.toString();
+      //localDb.userId.toString();
       print('🔍 Fetching dropoff locations for user: $currentUserId');
 
       // Get Supabase client

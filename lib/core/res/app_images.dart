@@ -8,18 +8,23 @@ class AppImages {
   // SVG Images
   static const String apple = '${_imagePath}apple.svg';
   static const String car = '${_imagePath}car.svg';
-  static const String drIcon = '${_imagePath}drIcon.svg';
+  static const String drIcon = '${_imagePath}dr.svg';
   static const String food = '${_imagePath}food.svg';
   static const String foodWhite = '${_imagePath}food_white.svg';
   static const String google = '${_imagePath}google.svg';
   static const String location = '${_imagePath}location.svg';
   static const String logo = '${_imagePath}logo.svg';
+  static const String whiteLogo = '${_imagePath}white_logo.svg';
+  static const String whiteLogo2 = '${_imagePath}whiteLogo2.svg';
   static const String redCar = '${_imagePath}red_car.svg';
   static const String safety = '${_imagePath}safety.svg';
-   static const String search = '${_imagePath}search.svg';
+   static const String search = '${_imagePath}search_icon.svg';
   static const String welcome = '${_imagePath}welcome.svg';
   static const String xIcon = '${_imagePath}xIcon.svg';
   static const String yellowLocation = '${_imagePath}yellow_location.svg';
+  static const String paymentMethodIcon = '${_imagePath}payment_method_icon.svg';
+  static const String cashIcon = '${_imagePath}cash.svg';
+  static const String cardIcon = '${_imagePath}card.svg';
 
   // Additional SVG Images
   static const String bmwTest = '${_imagePath}bmw_test.svg';
@@ -30,7 +35,7 @@ class AppImages {
   static const String blurLogo = '${_imagePath}blurLogo.png';
   static const String carInRide = '${_imagePath}car_in_ride.png';
   static const String italicBg = '${_imagePath}italic_bg.png';
-  static const String locationIcon = '${_imagePath}LocationIcon.png';
+  static const String locationIcon = '${_imagePath}location.svg';
   static const String phone = '${_imagePath}phone.svg';
   // GIF Images
   static const String loading = '${_imagePath}loading.gif';

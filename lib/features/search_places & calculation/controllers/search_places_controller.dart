@@ -1,19 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/shared_models/coupon_model.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/est_services_controller.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/local_db/local_db.dart';
 import '../models/place_model.dart';
 
 class SearchPlacesController extends GetxController {
 
   late EstServicesController estServicesController;
-  late LocalStorageService _localStorage;
   
   final TextEditingController fromController = TextEditingController();
   final TextEditingController toController = TextEditingController();
@@ -39,7 +36,7 @@ class SearchPlacesController extends GetxController {
   void onInit() {
     super.onInit();
     estServicesController = Get.put(EstServicesController());
-    _localStorage = GetIt.instance<LocalStorageService>();
+
     
     // Load selected coupon from local storage
     _loadSelectedCoupon();
@@ -51,7 +48,8 @@ class SearchPlacesController extends GetxController {
   /// Load selected coupon from local storage
   void _loadSelectedCoupon() {
     try {
-      final savedCoupon = _localStorage.selectedCoupon;
+      final savedCoupon = Storage.coupon;
+          //_localStorage.selectedCoupon;
       if (savedCoupon != null) {
         final coupon = Coupon.fromJson(savedCoupon);
         // Check if coupon is still valid
@@ -60,14 +58,16 @@ class SearchPlacesController extends GetxController {
           print('✅ Loaded valid coupon from storage: ${coupon.type}');
           update();
         } else {
+
+          Storage.delete.coupon();
           // Remove invalid coupon from storage
-          _localStorage.deleteSelectedCoupon();
+
           print('⚠️ Removed invalid coupon from storage');
         }
       }
     } catch (e) {
       print('❌ Error loading coupon from storage: $e');
-      _localStorage.deleteSelectedCoupon();
+      Storage.delete.coupon();
     }
   }
 

@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:mego_app/core/local_db/local_db.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/features/auth/login/views/login_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:video_player/video_player.dart';
+import '../../core/local_db/local_db.dart';
 import '../../core/res/app_colors.dart';
 
 class SplashView extends StatefulWidget {
@@ -22,12 +20,11 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   bool _isVideoInitialized = false;
-  late LocalStorageService _localStorage;
+
 
   @override
   void initState() {
     super.initState();
-    _localStorage = GetIt.instance<LocalStorageService>();
     _initializeVideo();
     _initializeFadeAnimation();
 
@@ -73,7 +70,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
 
   void _navigateToNextScreen() async {
     // Mark splash video as shown with current timestamp
-    await _localStorage.markSplashVideoAsShown();
+    await Storage.save.splashShown();
     
     // Start fade out animation
     await _fadeController.forward();
@@ -81,11 +78,10 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
     // Check if user is authenticated
    // final session = Supabase.instance.client.auth.currentSession;
 
-    final localStorage = GetIt.instance<LocalStorageService>();
 
     // PROCESS 2: Check if user data exists in local_db
    // final userName = localStorage.userName;
-    final userEmail = localStorage.userEmail;
+    final userEmail = Storage.userEmail.toString();
     if (userEmail.toString().length>2&&userEmail.toString()!='null') {
       // User is logged in, go to home with fade transition
       Get.offAll(

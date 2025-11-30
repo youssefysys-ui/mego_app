@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../core/local_db/local_db.dart';
-import '../../../core/res/app_colors.dart';
 import '../../home/views/home_view.dart';
 
 class RateDriverController extends GetxController {
@@ -99,10 +96,11 @@ class RateDriverController extends GetxController {
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       // STEP 1: Get local storage instance
-      final localStorage = GetIt.instance<LocalStorageService>();
+
       
       // STEP 2: Check if coupon exists in local_db
-      final couponData = localStorage.selectedCoupon;
+      final couponData =Storage.coupon;
+          //localStorage.selectedCoupon;
       
       if (couponData == null) {
         print('ℹ️ No coupon found in local_db - nothing to remove');
@@ -115,7 +113,7 @@ class RateDriverController extends GetxController {
       print('   Type: ${couponData['type']}');
       
       // STEP 3: Delete coupon from local_db
-      await localStorage.deleteSelectedCoupon();
+      await Storage.delete.coupon();
       print('✅ Coupon deleted from local_db');
       
       // STEP 4: Deactivate coupon in Supabase (if ID exists)
@@ -146,8 +144,8 @@ class RateDriverController extends GetxController {
   // Insert rating into ratings table
   Future<void> _insertRating() async {
 
-    final localStorage = GetIt.instance<LocalStorageService>();
-    String userId = localStorage.userId.toString();
+
+    String userId =   Storage.userId.toString();
 
     if (userId == 'null') {
       throw Exception('User not authenticated');

@@ -1,17 +1,12 @@
 
-
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/shared_models/user_ride_data.dart';
 import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/confirm_ride/confirm_ride_view.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/est_services_controller.dart';
 import 'package:mego_app/features/search_places%20&%20calculation/controllers/search_places_controller.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../core/local_db/local_db.dart';
 import 'coupon_discount_widget.dart';
 
@@ -256,8 +251,9 @@ class ConfirmButton extends StatelessWidget {
   }
 
    Future<void> _confirmRide() async {
-     final localStorage = GetIt.instance<LocalStorageService>();
-     final userId = localStorage.userId;
+
+     final userId = Storage.userId;
+         //localStorage.userId;
     if (controller.selectedFromPlace == null || controller.selectedToPlace == null) {
       Get.snackbar(
         'Error',
@@ -271,9 +267,8 @@ class ConfirmButton extends StatelessWidget {
 
 
       // PROCESS 2: Check if user data exists in local_db
-      final userEmail = localStorage.userEmail;
+      final userEmail = Storage.userEmail;
       print("User Email: $userEmail");
-      print("User Email:"+localStorage.userId.toString());
 
 
       //controller.getCurrentUserId();
