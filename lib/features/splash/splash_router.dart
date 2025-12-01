@@ -22,8 +22,8 @@ class SplashRouter extends StatelessWidget {
     } else {
       // Show logo splash (video was shown within last 5 days)
       print('⚡ Routing to SplashScreen (logo)');
-       return const SplashView();
-      //return const SplashScreen();
+      // return const SplashView();
+      return const SplashScreen();
     }
   }
 }

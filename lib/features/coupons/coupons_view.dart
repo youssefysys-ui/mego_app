@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
 import '../../core/loading/loading.dart';
 import '../../core/res/app_colors.dart';
@@ -96,12 +98,14 @@ class CouponsView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.confirmation_number_outlined,
-                    size: 80,
-                    color: AppColors.socialMediaText,
-                  ),
-                ),
+                  child:SvgPicture.asset(AppImages.couponsIcon)),
+
+                //   Icon(
+                //     Icons.confirmation_number_outlined,
+                //     size: 80,
+                //     color: AppColors.socialMediaText,
+                //   ),
+                // ),
                 const SizedBox(height: 24),
                 Text(
                   'No Coupons Yet',
@@ -158,8 +162,8 @@ class CouponsView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Summary Card
-                _buildSummaryCard(controller),
-                const SizedBox(height: 24),
+                // _buildSummaryCard(controller),
+                const SizedBox(height: 14),
 
                 // Active Coupons Section
                 if (controller.activeCoupons.isNotEmpty) ...[
@@ -289,12 +293,12 @@ class CouponsView extends StatelessWidget {
             color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: color,
-          ),
-        ),
+          child: SvgPicture.asset(AppImages.couponsIcon,
+          color:AppColors.primaryColor,
+          )),
+
+
+
         const SizedBox(width: 10),
         Text(
           title,
@@ -388,12 +392,10 @@ class CouponsView extends StatelessWidget {
                               ]
                             : null,
                       ),
-                      child: Icon(
-                        Icons.discount_rounded,
-                        color: AppColors.whiteColor,
-                        size: 28,
-                      ),
-                    ),
+                      child: SvgPicture.asset(AppImages.couponsIcon)),
+
+
+
                     const SizedBox(width: 14),
 
                     // Coupon Details

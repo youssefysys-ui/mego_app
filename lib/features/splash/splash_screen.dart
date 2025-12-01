@@ -2,15 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:mego_app/core/res/app_colors.dart';
 import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import 'package:mego_app/features/auth/login/views/login_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:mego_app/features/home/bindings/home_binding.dart';
+import 'package:mego_app/features/splash/widgets/animated_welcome_text.dart';
 
-import '../../core/local_db/local_db.dart';
+import '../auth/save_data/save_user_data.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,13 +24,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _shimmerController;
   late AnimationController _stage3Controller; // Added missing controller
 
-  late Animation<double> _logoFadeAnimation;
-  late Animation<double> _logoScaleAnimation;
-  late Animation<double> _logoRotateAnimation;
-  late Animation<double> _textFadeAnimation;
   late Animation<double> _textSlideAnimation;
   late Animation<double> _taglineFadeAnimation;
-  late Animation<double> _shimmerAnimation;
   late Animation<double> _welcomeFadeAnimation; // Added missing animation
 
   @override
@@ -66,38 +61,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       vsync: this,
     );
 
-    // Logo fade with smooth ease
-    _logoFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-      ),
-    );
-
-    // Logo scale with bounce effect
-    _logoScaleAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.7, curve: Curves.elasticOut),
-      ),
-    );
-
-    // Subtle rotation for dynamic feel
-    _logoRotateAnimation = Tween<double>(begin: -0.1, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    // Text fade in (faster)
-    _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
-      ),
-    );
-
     // Text slide up (faster)
     _textSlideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
       CurvedAnimation(
@@ -111,14 +74,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       CurvedAnimation(
         parent: _textController,
         curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
-      ),
-    );
-
-    // Shimmer effect
-    _shimmerAnimation = Tween<double>(begin: -2.0, end: 2.0).animate(
-      CurvedAnimation(
-        parent: _shimmerController,
-        curve: Curves.linear,
       ),
     );
 
@@ -164,27 +119,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _navigateToNextScreen() async {
-    // ════════════════════════════════════════════════════════════════════════
-    // CHECK LOCAL STORAGE FOR USER DATA (Not Supabase Session)
-    // ════════════════════════════════════════════════════════════════════════
-    
-    // PROCESS 1: Get local storage instance
+    final loggedIn = SaveUserData.isUserLoggedIn();
+    final localUser = SaveUserData.getLocalUser();
 
-    // PROCESS 2: Check if user data exists in local_db
-    final userName = Storage.userName.toString();
-    final userEmail = Storage.userEmail.toString();
-    
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    print("🔍 SPLASH SCREEN: Checking authentication");
-    print("   User Name: $userName");
-    print("   User Email: $userEmail");
+    print("🔍 SPLASH SCREEN: Checking authentication (local)");
+    print("   User ID: ${localUser['id']}");
+    print("   User Name: ${localUser['name']}");
+    print("   User Email: ${localUser['email']}");
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
-    // PROCESS 3: Determine navigation based on local storage data
-    if (userName != 'null' && userName.isNotEmpty &&
-        userEmail != 'null' && userEmail.isNotEmpty) {
-      // User data exists in local_db → Navigate to Home
-      print("✅ User authenticated (local_db) → Home");
+
+    if (loggedIn) {
+      print("✅ User authenticated (local) → Home");
       Get.offAll(
         () => const HomeView(),
         binding: HomeBinding(),
@@ -192,8 +138,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         duration: const Duration(milliseconds: 500),
       );
     } else {
-      // No user data in local_db → Navigate to Login
-      print("❌ No user data (local_db) → Login");
+      print("❌ No user data (local) → Login");
       Get.offAll(
         () => LoginView(),
         transition: Transition.fadeIn,
@@ -291,43 +236,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                       return Center(
                                         child: FadeTransition(
                                           opacity: _welcomeFadeAnimation,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              // "Welc" text
-                                              Text(
-                                                'Welc',
-                                                style: TextStyle(
-                                                  fontSize: 48,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Montserrat',
-                                                  color: AppColors.primaryColor,
-                                                  letterSpacing: 1.5,
-                                                ),
-                                              ),
-                                              // Small star2.svg replacing "o"
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                                child: SvgPicture.asset(
-                                                  AppImages.star2,
-                                                  height: 40,
-                                                  width: 40,
-                                                ),
-                                              ),
-                                              // "me" text
-                                              Text(
-                                                'me',
-                                                style: TextStyle(
-                                                  fontSize: 48,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Montserrat',
-                                                  color: AppColors.primaryColor,
-                                                  letterSpacing: 1.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                          child: AnimatedWelcomeText(),
                                         ),
                                       );
                                     },

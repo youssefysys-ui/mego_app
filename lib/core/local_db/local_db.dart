@@ -1,4 +1,3 @@
-
 // lib/core/services/storage_service.dart
 import 'dart:math';
 import 'package:get_it/get_it.dart';
@@ -106,6 +105,9 @@ class Storage {
         name == 'user' ||
         name == 'المستخدم';
   }
+
+  /// Get custom data by key
+  static dynamic getCustomData(String key) => _box.read(key);
 
   // ════════════════════════════════════════════════════════════════════════
   // COUPON VALIDATION

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math' as Math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/features/splash/splash_screen.dart';
+import 'package:mego_app/features/splash/widgets/animated_welcome_text.dart';
+import 'package:mego_app/core/res/app_images.dart';
 import '../../core/res/app_colors.dart';
 
 class SplashView extends StatefulWidget {
@@ -20,11 +21,15 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   late AnimationController _stage3Controller;
   late AnimationController _pulseController;
   late AnimationController _backgroundController;
+  late AnimationController _navigationController;
 
   late Animation<double> _splash1FadeAnimation;
   late Animation<double> _splash1ScaleAnimation;
+  late Animation<double> _splash1BlurAnimation;
   late Animation<double> _loadingFadeAnimation;
   late Animation<double> _welcomeFadeAnimation;
+  late Animation<double> _navigationSlideAnimation;
+  late Animation<double> _navigationFadeAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<Color?> _backgroundColorAnimation;
 
@@ -38,7 +43,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   }
 
   void _initializeAnimations() {
-    // Stage 1: Splash1 image animations (0-1.5s)
+    // Stage 1: Splash1 image animations (0-1.5s) - Enhanced with scale and blur
     _stage1Controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -68,19 +73,33 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    // Splash1 fade in
+    // Navigation exit animation controller
+    _navigationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    // Splash1 fade in animation - Professional fade from transparent to visible
     _splash1FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _stage1Controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.8, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // Splash1 scale with elastic effect
-    _splash1ScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    // Splash1 scale animation - Subtle zoom effect from slightly larger to normal
+    _splash1ScaleAnimation = Tween<double>(begin: 1.15, end: 1.0).animate(
       CurvedAnimation(
         parent: _stage1Controller,
-        curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
+        curve: const Interval(0.0, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Splash1 blur animation - Starts blurred and becomes sharp
+    _splash1BlurAnimation = Tween<double>(begin: 10.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _stage1Controller,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOutQuart),
       ),
     );
 
@@ -96,7 +115,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     _welcomeFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _stage3Controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.6, curve: Curves.linearToEaseOut),
       ),
     );
 
@@ -118,6 +137,22 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
         curve: Curves.easeInOut,
       ),
     );
+
+    // Navigation slide animation (down to top - moves content upward)
+    _navigationSlideAnimation = Tween<double>(begin: 0.0, end: -300.0).animate(
+      CurvedAnimation(
+        parent: _navigationController,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeInBack),
+      ),
+    );
+
+    // Navigation fade out animation
+    _navigationFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _navigationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeInQuart),
+      ),
+    );
   }
 
   void _startAnimationSequence() {
@@ -125,7 +160,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     _stage1Controller.forward();
 
     // Stage 2: Transition to loading GIF (2s)
-    Timer(const Duration(milliseconds: 2000), () {
+    Timer(const Duration(milliseconds: 1300), () {
       if (mounted) {
         setState(() {
           _currentStage = 2;
@@ -137,7 +172,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     });
 
     // Stage 3: Show welcome.svg (4s)
-    Timer(const Duration(milliseconds: 4000), () {
+    Timer(const Duration(milliseconds: 400), () {
       if (mounted) {
         setState(() {
           _currentStage = 3;
@@ -147,8 +182,15 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       }
     });
 
-    // Stage 4: Navigate to splash screen (6s)
-    Timer(const Duration(milliseconds: 6000), () {
+    // Stage 4: Start exit animation (5.5s)
+    Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _navigationController.forward();
+      }
+    });
+
+    // Stage 5: Navigate to splash screen after exit animation (6.3s)
+    Timer(const Duration(milliseconds: 2800), () {
       if (mounted) {
         _navigateToSplashScreen();
       }
@@ -156,11 +198,11 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   }
 
   void _navigateToSplashScreen() async {
-    // Navigate to SplashScreen with fade transition
+    // Navigate to SplashScreen with left to right transition
     Get.offAll(
-      () => const SplashScreen(),
+          () => const SplashScreen(),
       transition: Transition.fadeIn,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 1200),
     );
   }
 
@@ -171,6 +213,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     _stage3Controller.dispose();
     _pulseController.dispose();
     _backgroundController.dispose();
+    _navigationController.dispose();
     super.dispose();
   }
 
@@ -184,42 +227,51 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: _currentStage == 1
                   ? LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.primaryColor.withValues(alpha: 0.7),
-                        AppColors.primaryColor,
-                        AppColors.primaryColor.withValues(alpha: 0.8),
-                      ],
-                    )
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.drawerColor,
+                  AppColors.drawerColor,
+                  AppColors.primaryColor,
+                  AppColors.primaryColor,
+                ],
+              )
                   : null,
               color: _currentStage == 1
                   ? null
                   : (_backgroundColorAnimation.value ??
-                      AppColors.backgroundColor),
+                  AppColors.backgroundColor),
             ),
             child: Stack(
               children: [
-                // Stage 1: Opening Gradient Animation
+                // Stage 1: Professional Fade Animation with Scale and Blur
                 if (_currentStage == 1)
                   AnimatedBuilder(
                     animation: _stage1Controller,
                     builder: (context, child) {
-                      return ClipRect(
-                        child: Align(
-                          alignment: Alignment.center,
-                          heightFactor: _splash1ScaleAnimation.value,
-                          child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppColors.primaryColor,
-                                  AppColors.drawerColor,
-                                ],
+                      return FadeTransition(
+                        opacity: _splash1FadeAnimation,
+                        child: Transform.scale(
+                          scale: _splash1ScaleAnimation.value,
+                          child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(
+                              sigmaX: _splash1BlurAnimation.value,
+                              sigmaY: _splash1BlurAnimation.value,
+                              tileMode: TileMode.decal,
+                            ),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.height,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    AppColors.primaryColor.withValues(alpha: 0.9),
+                                    AppColors.primaryColor,
+                                    AppColors.drawerColor,
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -258,53 +310,27 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                     },
                   ),
 
-                // Stage 3: Welcome Text with Loading Animation
+                // Stage 3: Welcome Text with Exit Animation
                 if (_currentStage == 3)
                   AnimatedBuilder(
                     animation: _stage3Controller,
                     builder: (context, child) {
-                      return Center(
-                        child: FadeTransition(
-                          opacity: _welcomeFadeAnimation,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // "Welc" text
-                              Text(
-                                'Welc',
-                                style: TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Montserrat',
-                                  color: AppColors.primaryColor,
-                                  letterSpacing: 1.5,
+                      return AnimatedBuilder(
+                        animation: _navigationController,
+                        builder: (context, child) {
+                          return FadeTransition(
+                            opacity: _navigationFadeAnimation,
+                            child: Transform.translate(
+                              offset: Offset(0, _navigationSlideAnimation.value),
+                              child: Center(
+                                child: FadeTransition(
+                                  opacity: _welcomeFadeAnimation,
+                                  child: AnimatedWelcomeText(),
                                 ),
                               ),
-                              // Small star2.svg replacing "o"
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                child: SvgPicture.asset(
-                                  AppImages.star2,
-                                  height: 40,
-                                  width: 40,
-                                ),
-                              ),
-                              // "me" text
-                              Text(
-                                'me',
-                                style: TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Montserrat',
-                                  color: AppColors.primaryColor,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -334,12 +360,6 @@ class WaveGradientPainter extends CustomPainter {
     final topPaint = Paint()
       ..color = AppColors.primaryColor
       ..style = PaintingStyle.fill;
-
-    // Wave line paint
-    // final wavePaint = Paint()
-    //   ..color = AppColors.primaryColor
-    //   ..style = PaintingStyle.stroke
-    //   ..strokeWidth = 3.0;
 
     // Calculate wave position (moves with animation)
     final waveHeight = size.height * 0.6;
@@ -377,7 +397,6 @@ class WaveGradientPainter extends CustomPainter {
           waveAmplitude * Math.sin((i / size.width) * 2 * Math.pi * 2);
       waveLine.lineTo(x, y);
     }
-    // canvas.drawPath(waveLine, wavePaint);
   }
 
   @override

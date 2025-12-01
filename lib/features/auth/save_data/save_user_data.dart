@@ -213,6 +213,29 @@ class SaveUserData {
     
     return null; // Data is valid
   }
+  
+  /// Get local user data as a Map from Storage
+  static Map<String, dynamic> getLocalUser() {
+    final id = Storage.userId as String? ?? '';
+    final name = Storage.userName as String? ?? '';
+    final email = Storage.userEmail as String? ?? '';
+    final phone = Storage.userPhone as String? ?? '';
+    final profile = Storage.userProfile as String? ?? '';
+
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'profile': profile,
+    };
+  }
+
+  /// Returns true when a valid userId exists in local storage
+  static bool isUserLoggedIn() {
+    final id = Storage.userId as String? ?? '';
+    return id.isNotEmpty;
+  }
 }
 
 

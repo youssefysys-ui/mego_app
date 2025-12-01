@@ -30,6 +30,8 @@ class CouponsController extends GetxController {
 
     _loadSelectedCouponFromStorage();
     loadCoupons();
+    insertTestDataToSupabase();
+
   }
 
   /// Load previously selected coupon from local storage
@@ -93,16 +95,7 @@ class CouponsController extends GetxController {
       ),
 
       // All-users coupons (available to everyone)
-      Coupon(
-        id: 'test-4',
-        userId: systemUserId,  // ✅ UUID صحيح
-        type: 'FREE_RIDE',
-        couponFor: 'all',
-        active: true,
-        validUntil: now.add(const Duration(hours: 12)),
-        createdAt: now.subtract(const Duration(days: 1)),
-        updatedAt: now.subtract(const Duration(days: 1)),
-      ),
+
       Coupon(
         id: 'test-5',
         userId: systemUserId,  // ✅ UUID صحيح
@@ -437,6 +430,14 @@ class CouponsController extends GetxController {
       return;
     }
 
+    // Check if test data already inserted for this user
+    final insertedUsers = Storage.getCustomData('test_data_inserted_users') as List<dynamic>? ?? [];
+    if (insertedUsers.contains(userId)) {
+      print('⚠️ Test data already inserted for user: $userId');
+      appMessageFail(text: 'Test data already exists for this user', context: Get.context!);
+      return;
+    }
+
     try {
       isLoading.value = true;
 
@@ -454,9 +455,12 @@ class CouponsController extends GetxController {
 
       print('✅ Test data inserted successfully');
 
+      // Mark this user as having test data inserted
+      final updatedUsers = [...insertedUsers, userId];
+      await Storage.save.custom('test_data_inserted_users', updatedUsers);
+      print('📝 Marked user $userId as having test data inserted');
+
       appMessageSuccess(text: 'Test data inserted successfully! ${testData.length} coupons added.', context: Get.context!);
-
-
 
       // Reload coupons from database
       await loadCoupons();
