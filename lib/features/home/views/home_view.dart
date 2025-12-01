@@ -8,26 +8,12 @@ import '../../../core/shared_widgets/menu/drawer_menu_icon.dart';
 import '../widgets/bottom_card_widget.dart';
 import '../widgets/map_widget.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
-
-  @override
-  State<HomeView> createState() => _HomeViewState();
-}
-
-class _HomeViewState extends State<HomeView> {
-  late HomeController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller =Get.put(HomeController());
-        //Get.find<HomeController>();
-    controller.getLastUserDropOffLocation();
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Ensure controller is ready (though binding handles init, we might want to call methods)
+    // controller.getLastUserDropOffLocation(); // This should ideally be in onInit of controller
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: CustomAppBar(),

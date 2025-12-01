@@ -12,40 +12,17 @@ import 'features/splash/splash_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    //options: DefaultFirebaseOptions.currentPlatform,
-  );
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: 'https://ovbnpmaltlpedueggtyr.supabase.co',
-    anonKey: 'sb_publishable_mDuyLHyxQpNjGpeJj8CstQ_-XVp7GbO'
-  );
-  // Setup local storage
-  await Storage.init();
-  // Initialize FCM notifications
-  // Get.put(FCMNotificationReceiver(), permanent: true);
-  runApp(const MyApp());
   
-  // Check for active rides after app starts (with delay to ensure UI is ready)
-  // Future.delayed(const Duration(seconds: 2), () async {
-  //   // Check for driver rides first
-  //   final hasDriverRide = await RideRestorationService.checkAndRestoreActiveRide();
-  //   print("🚗 Driver ride restoration status: $hasDriverRide");
-  //   final hasPassengerRide = await PassengerRideRestorationService.checkAndRestoreActivePassengerRide();
-  //   print("🚗 Driver ride restoration status: $hasPassengerRide");
-  //   // If no driver ride found, check for passenger rides
-  //   if (!hasDriverRide) {
-  //
-  //
-  //     // If passenger ride is found, clear any driver ride restoration data
-  //     if (!hasPassengerRide) {
-  //       await RideRestorationService.clearDriverRideState();
-  //     }
-  //   } else {
-  //     // If driver ride is found, clear any passenger ride data
-  //     //await PassengerRideRestorationService.clearPassengerRideState();
-  //   }
-  // });
+  // Initialize services in parallel for faster startup
+  await Future.wait([
+    Firebase.initializeApp(),
+    Supabase.initialize(
+      url: 'https://ovbnpmaltlpedueggtyr.supabase.co',
+      anonKey: 'sb_publishable_mDuyLHyxQpNjGpeJj8CstQ_-XVp7GbO'
+    ),
+    Storage.init(),
+  ]);
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

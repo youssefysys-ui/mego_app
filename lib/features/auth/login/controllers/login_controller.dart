@@ -6,9 +6,9 @@ import 'package:mego_app/core/utils/app_message.dart';
 import 'package:mego_app/features/auth/verify_otp/verify_otp_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../auth/complete_profile/views/complete_profile_view.dart';
 import '../../save_data/save_user_data.dart';
+import 'package:mego_app/features/home/bindings/home_binding.dart';
 
 class LoginController extends GetxController {
   final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
@@ -214,6 +214,7 @@ class LoginController extends GetxController {
       print("🏠 STEP 6: Navigating to Home screen");
       Get.offAll(
         () => const HomeView(),
+        binding: HomeBinding(),
         transition: Transition.leftToRightWithFade,
         duration: const Duration(milliseconds: 900),
       );
@@ -447,6 +448,7 @@ class LoginController extends GetxController {
 
         Get.offAll(
           () => const HomeView(),
+          binding: HomeBinding(),
           transition: Transition.fadeIn,
           duration: const Duration(milliseconds: 500),
         );

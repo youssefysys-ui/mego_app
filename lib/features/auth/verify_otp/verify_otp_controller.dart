@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:mego_app/core/utils/app_message.dart';
+import 'package:mego_app/features/home/bindings/home_binding.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../complete_profile/views/complete_profile_view.dart';
@@ -264,6 +265,7 @@ class VerifyOtpController extends GetxController {
       print("🏠 STEP 7: Navigating to Home screen");
       Get.offAll(
         () => const HomeView(),
+        binding: HomeBinding(),
         transition: Transition.leftToRightWithFade,
         duration: const Duration(milliseconds: 900),
       );
@@ -340,6 +342,7 @@ class VerifyOtpController extends GetxController {
       print('🏠 PROCESS 4: Navigating to Home screen');
       Get.offAll(
         () => const HomeView(),
+          binding: HomeBinding(),
         transition: Transition.leftToRightWithFade,
         duration: const Duration(milliseconds: 900),
       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:mego_app/features/home/bindings/home_binding.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/app_message.dart';
 import '../../../home/views/home_view.dart';
@@ -183,7 +184,9 @@ class CompleteProfileController extends GetxController {
       
       Get.offAll(
         () => const HomeView(),
+        
         transition: Transition.fadeIn,
+        binding: HomeBinding(),
         duration: const Duration(milliseconds: 500),
       );
 
@@ -356,6 +359,7 @@ class CompleteProfileController extends GetxController {
       // Navigate to home
       Get.offAll(
         () => const HomeView(),
+        binding: HomeBinding(),
         transition: Transition.fadeIn,
         duration: const Duration(milliseconds: 500),
       );

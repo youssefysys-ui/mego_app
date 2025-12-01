@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:mego_app/core/res/app_colors.dart';
-import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/shared_models/models.dart';
 import 'package:mego_app/core/shared_widgets/custom_appbar.dart';
 import 'package:mego_app/core/shared_widgets/Custom_button.dart';
 import 'package:mego_app/core/shared_widgets/driver_info_card.dart';
 import 'package:mego_app/core/shared_widgets/payment_card_widget.dart';
+import 'package:mego_app/core/utils/app_message.dart';
 
 import '../trip_comp_widgets/promotional_widget.dart';
 import '../trip_comp_widgets/title_section.dart';
@@ -66,13 +64,8 @@ class _TripCompletionViewState extends State<TripCompletionView> {
                       ),
                     );
                   } else {
-                    Get.snackbar(
-                      'Error',
-                      'Driver information not available',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.red,
-                      colorText: Colors.white,
-                    );
+                    appMessageFail(text: 'Driver information not available', context: context);
+                    
                   }
                 },
               ),

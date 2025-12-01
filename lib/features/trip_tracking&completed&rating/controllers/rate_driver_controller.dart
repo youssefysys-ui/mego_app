@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/shared_models/driver_model.dart';
 import 'package:mego_app/core/utils/app_message.dart';
+import 'package:mego_app/features/home/bindings/home_binding.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/local_db/local_db.dart';
 import '../../home/views/home_view.dart';
@@ -69,9 +70,13 @@ class RateDriverController extends GetxController {
         Get.back(); // Close rating dialog
      //   Get.back(); // Go back from completion view
         appMessageSuccess(text: 'Thank You! ⭐', context: context);
-        Get.offAll(HomeView());
+          Get.offAll(
+        () => const HomeView(),
+        binding: HomeBinding(),
+        transition: Transition.fadeIn,
+        duration: const Duration(milliseconds: 500),
+      );
       }
-
     } catch (e) {
       print('❌ Error submitting rating: $e');
       errorMessage = e.toString();

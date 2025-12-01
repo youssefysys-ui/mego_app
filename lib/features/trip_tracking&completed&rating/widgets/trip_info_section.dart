@@ -54,7 +54,7 @@ class TripInfoSection extends StatelessWidget {
               ),
 
               Padding(
-                padding: const EdgeInsets.only(top:6,left: 10,right: 10),
+                padding: const EdgeInsets.only(top:6,left: 9,right: 9),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -111,7 +111,7 @@ class TripInfoSection extends StatelessWidget {
                     // Arrival time button with distance
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.only(left: 33,right: 33,
+                      padding: const EdgeInsets.only(left: 29,right: 29,
                           top: 7,
                           bottom: 7),
                       decoration: BoxDecoration(
@@ -124,9 +124,9 @@ class TripInfoSection extends StatelessWidget {
                           Icon(
                             Icons.access_time,
                             color: Colors.white,
-                            size: 20,
+                            size: 18,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             'you will arrive at ${controller.estimatedArrivalTime}',
                             style: const TextStyle(
@@ -136,7 +136,7 @@ class TripInfoSection extends StatelessWidget {
                               fontFamily: 'Roboto',
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
@@ -146,7 +146,7 @@ class TripInfoSection extends StatelessWidget {
                             child: Text(
                               controller.remainingDistance,
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 fontFamily: 'Roboto',

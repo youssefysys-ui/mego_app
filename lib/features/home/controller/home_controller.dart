@@ -1,5 +1,4 @@
 
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -8,7 +7,6 @@ import 'package:mego_app/core/loading/loading.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/local_db/local_db.dart';
 import '../../search_places & calculation/controllers/search_places_controller.dart';
-
 
 class HomeController extends GetxController {
   double latitude = 0.0;
@@ -21,6 +19,7 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     getCurrentLocation();
+    getLastUserDropOffLocation();
   }
 
   void onMapCreated(GoogleMapController controller) {

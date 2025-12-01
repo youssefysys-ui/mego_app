@@ -1,10 +1,6 @@
-
-
-
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
 import '../../../core/res/app_colors.dart';
 import '../../../core/res/app_images.dart';
 import '../../customer_support/customer_chat.dart';

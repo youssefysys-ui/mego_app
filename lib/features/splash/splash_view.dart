@@ -1,11 +1,10 @@
 import 'dart:async';
+import 'dart:math' as Math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mego_app/core/res/app_images.dart';
-import 'package:mego_app/features/auth/login/views/login_view.dart';
-import 'package:mego_app/features/home/views/home_view.dart';
-import 'package:video_player/video_player.dart';
-import '../../core/local_db/local_db.dart';
+import 'package:mego_app/features/splash/splash_screen.dart';
 import '../../core/res/app_colors.dart';
 
 class SplashView extends StatefulWidget {
@@ -15,118 +14,374 @@ class SplashView extends StatefulWidget {
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView> with SingleTickerProviderStateMixin {
-  late VideoPlayerController _videoController;
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-  bool _isVideoInitialized = false;
+class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
+  late AnimationController _stage1Controller;
+  late AnimationController _stage2Controller;
+  late AnimationController _stage3Controller;
+  late AnimationController _pulseController;
+  late AnimationController _backgroundController;
 
+  late Animation<double> _splash1FadeAnimation;
+  late Animation<double> _splash1ScaleAnimation;
+  late Animation<double> _loadingFadeAnimation;
+  late Animation<double> _welcomeFadeAnimation;
+  late Animation<double> _pulseAnimation;
+  late Animation<Color?> _backgroundColorAnimation;
+
+  int _currentStage = 1;
 
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
-    _initializeFadeAnimation();
-
-    // Navigate after 3.2 seconds
-    Timer(const Duration(milliseconds: 3200), () {
-      _navigateToNextScreen();
-    });
+    _initializeAnimations();
+    _startAnimationSequence();
   }
 
-  void _initializeFadeAnimation() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+  void _initializeAnimations() {
+    // Stage 1: Splash1 image animations (0-1.5s)
+    _stage1Controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+    // Stage 2: Loading GIF animations (2-4s)
+    _stage2Controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    // Stage 3: Welcome image animations (4-6s)
+    _stage3Controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    // Pulse animation for loading stage
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    // Background color transition controller
+    _backgroundController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    // Splash1 fade in
+    _splash1FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _fadeController,
+        parent: _stage1Controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+
+    // Splash1 scale with elastic effect
+    _splash1ScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _stage1Controller,
+        curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
+      ),
+    );
+
+    // Loading GIF fade in
+    _loadingFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _stage2Controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeInOut),
+      ),
+    );
+
+    // Welcome SVG fade in
+    _welcomeFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _stage3Controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+
+    // Pulse animation
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Background color animation from primary to background
+    _backgroundColorAnimation = ColorTween(
+      begin: AppColors.primaryColor,
+      end: AppColors.backgroundColor,
+    ).animate(
+      CurvedAnimation(
+        parent: _backgroundController,
         curve: Curves.easeInOut,
       ),
     );
   }
 
-  Future<void> _initializeVideo() async {
-    _videoController = VideoPlayerController.asset(AppImages.splashVideo);
+  void _startAnimationSequence() {
+    // Stage 1: Show splash1 image (0-2s)
+    _stage1Controller.forward();
 
-    try {
-      await _videoController.initialize();
-      setState(() {
-        _isVideoInitialized = true;
-      });
+    // Stage 2: Transition to loading GIF (2s)
+    Timer(const Duration(milliseconds: 2000), () {
+      if (mounted) {
+        setState(() {
+          _currentStage = 2;
+        });
+        _backgroundController.forward();
+        _stage2Controller.forward();
+        _pulseController.repeat(reverse: true);
+      }
+    });
 
-      // Set playback speed to slow motion (0.5 = half speed, 0.75 = 3/4 speed)
-      _videoController.setPlaybackSpeed(0.68);
+    // Stage 3: Show welcome.svg (4s)
+    Timer(const Duration(milliseconds: 4000), () {
+      if (mounted) {
+        setState(() {
+          _currentStage = 3;
+        });
+        _pulseController.stop();
+        _stage3Controller.forward();
+      }
+    });
 
-      // Play the video
-      _videoController.play();
-      _videoController.setLooping(true);
-    } catch (e) {
-      debugPrint('Error initializing video: $e');
-    }
+    // Stage 4: Navigate to splash screen (6s)
+    Timer(const Duration(milliseconds: 6000), () {
+      if (mounted) {
+        _navigateToSplashScreen();
+      }
+    });
   }
 
-  void _navigateToNextScreen() async {
-    // Mark splash video as shown with current timestamp
-    await Storage.save.splashShown();
-    
-    // Start fade out animation
-    await _fadeController.forward();
-
-    // Check if user is authenticated
-   // final session = Supabase.instance.client.auth.currentSession;
-
-
-    // PROCESS 2: Check if user data exists in local_db
-   // final userName = localStorage.userName;
-    final userEmail = Storage.userEmail.toString();
-    if (userEmail.toString().length>2&&userEmail.toString()!='null') {
-      // User is logged in, go to home with fade transition
-      Get.offAll(
-        () => const HomeView(),
-        transition: Transition.downToUp,
-        duration: const Duration(milliseconds: 500),
-      );
-    } else {
-      // User is not logged in, go to login with fade transition
-      Get.offAll(
-        LoginView(),
-        transition: Transition.fadeIn,
-        duration: const Duration(milliseconds: 500),
-      );
-    }
+  void _navigateToSplashScreen() async {
+    // Navigate to SplashScreen with fade transition
+    Get.offAll(
+      () => const SplashScreen(),
+      transition: Transition.fadeIn,
+      duration: const Duration(milliseconds: 500),
+    );
   }
 
   @override
   void dispose() {
-    _videoController.dispose();
-    _fadeController.dispose();
+    _stage1Controller.dispose();
+    _stage2Controller.dispose();
+    _stage3Controller.dispose();
+    _pulseController.dispose();
+    _backgroundController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+    return AnimatedBuilder(
+      animation: _backgroundController,
+      builder: (context, child) {
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: _currentStage == 1
+                  ? LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.7),
+                        AppColors.primaryColor,
+                        AppColors.primaryColor.withValues(alpha: 0.8),
+                      ],
+                    )
+                  : null,
+              color: _currentStage == 1
+                  ? null
+                  : (_backgroundColorAnimation.value ??
+                      AppColors.backgroundColor),
+            ),
+            child: Stack(
+              children: [
+                // Stage 1: Opening Gradient Animation
+                if (_currentStage == 1)
+                  AnimatedBuilder(
+                    animation: _stage1Controller,
+                    builder: (context, child) {
+                      return ClipRect(
+                        child: Align(
+                          alignment: Alignment.center,
+                          heightFactor: _splash1ScaleAnimation.value,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  AppColors.primaryColor,
+                                  AppColors.drawerColor,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
 
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: _isVideoInitialized
-            ? SizedBox.expand(
-          child: FittedBox(
-            fit: BoxFit.cover,
-            child: SizedBox(
-              width: _videoController.value.size.width,
-              height: _videoController.value.size.height,
-              child: VideoPlayer(_videoController),
+                // Stage 2: Loading GIF with pulse effect
+                if (_currentStage == 2)
+                  AnimatedBuilder(
+                    animation: _stage2Controller,
+                    builder: (context, child) {
+                      return Center(
+                        child: FadeTransition(
+                          opacity: _loadingFadeAnimation,
+                          child: AnimatedBuilder(
+                            animation: _pulseController,
+                            builder: (context, child) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Transform.scale(
+                                  scale: _pulseAnimation.value,
+                                  child: Image.asset(
+                                    AppImages.loading,
+                                    height: 50,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                // Stage 3: Welcome Text with Loading Animation
+                if (_currentStage == 3)
+                  AnimatedBuilder(
+                    animation: _stage3Controller,
+                    builder: (context, child) {
+                      return Center(
+                        child: FadeTransition(
+                          opacity: _welcomeFadeAnimation,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // "Welc" text
+                              Text(
+                                'Welc',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Montserrat',
+                                  color: AppColors.primaryColor,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              // Small star2.svg replacing "o"
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                child: SvgPicture.asset(
+                                  AppImages.star2,
+                                  height: 40,
+                                  width: 40,
+                                ),
+                              ),
+                              // "me" text
+                              Text(
+                                'me',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Montserrat',
+                                  color: AppColors.primaryColor,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
             ),
           ),
-        )
-            : SizedBox(),
-        //Center(child: SvgPicture.asset(AppImages.logo)),
-      ),
+        );
+      },
     );
+  }
+}
+
+/// Custom painter for animated wave gradient
+class WaveGradientPainter extends CustomPainter {
+  final double animationValue;
+
+  WaveGradientPainter({required this.animationValue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Bottom section (drawerColor)
+    final bottomPaint = Paint()
+      ..color = AppColors.drawerColor
+      ..style = PaintingStyle.fill;
+
+    // Top section (primaryColor)
+    final topPaint = Paint()
+      ..color = AppColors.primaryColor
+      ..style = PaintingStyle.fill;
+
+    // Wave line paint
+    // final wavePaint = Paint()
+    //   ..color = AppColors.primaryColor
+    //   ..style = PaintingStyle.stroke
+    //   ..strokeWidth = 3.0;
+
+    // Calculate wave position (moves with animation)
+    final waveHeight = size.height * 0.6;
+    final waveAmplitude = 40 * animationValue;
+
+    // Draw top section (primaryColor)
+    final topPath = Path();
+    topPath.moveTo(0, 0);
+    topPath.lineTo(size.width, 0);
+    topPath.lineTo(size.width, waveHeight);
+
+    // Create curved wave
+    for (double i = size.width; i >= 0; i -= 10) {
+      final x = i;
+      final y = waveHeight +
+          waveAmplitude * Math.sin((i / size.width) * 2 * Math.pi * 2);
+      topPath.lineTo(x, y);
+    }
+
+    topPath.lineTo(0, waveHeight);
+    topPath.close();
+    canvas.drawPath(topPath, topPaint);
+
+    // Draw bottom section (drawerColor)
+    final bottomRect = Rect.fromLTWH(
+        0, waveHeight + waveAmplitude, size.width, size.height - waveHeight);
+    canvas.drawRect(bottomRect, bottomPaint);
+
+    // Draw wave line
+    final waveLine = Path();
+    waveLine.moveTo(0, waveHeight);
+    for (double i = 0; i <= size.width; i += 5) {
+      final x = i;
+      final y = waveHeight +
+          waveAmplitude * Math.sin((i / size.width) * 2 * Math.pi * 2);
+      waveLine.lineTo(x, y);
+    }
+    // canvas.drawPath(waveLine, wavePaint);
+  }
+
+  @override
+  bool shouldRepaint(WaveGradientPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue;
   }
 }

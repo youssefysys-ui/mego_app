@@ -8,6 +8,7 @@ import 'package:mego_app/core/res/app_images.dart';
 import 'package:mego_app/core/shared_widgets/loading_widget.dart';
 import 'package:mego_app/features/auth/login/views/login_view.dart';
 import 'package:mego_app/features/home/views/home_view.dart';
+import 'package:mego_app/features/home/bindings/home_binding.dart';
 
 import '../../core/local_db/local_db.dart';
 
@@ -21,6 +22,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _shimmerController;
+  late AnimationController _stage3Controller; // Added missing controller
 
   late Animation<double> _logoFadeAnimation;
   late Animation<double> _logoScaleAnimation;
@@ -29,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _textSlideAnimation;
   late Animation<double> _taglineFadeAnimation;
   late Animation<double> _shimmerAnimation;
+  late Animation<double> _welcomeFadeAnimation; // Added missing animation
 
   @override
   void initState() {
@@ -54,6 +57,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // Shimmer effect for premium feel
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    // Stage 3 controller for welcome text
+    _stage3Controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
@@ -112,6 +121,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         curve: Curves.linear,
       ),
     );
+
+    // Welcome fade animation
+    _welcomeFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _stage3Controller,
+        curve: Curves.easeIn,
+      ),
+    );
   }
 
   void _startAnimationSequence() {
@@ -129,6 +146,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         _shimmerController.repeat();
+      }
+    });
+
+    // Start stage 3 animation
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        _stage3Controller.forward();
       }
     });
   }
@@ -152,8 +176,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     print("🔍 SPLASH SCREEN: Checking authentication");
-    print("   User Name: ${userName ?? 'Not found'}");
-    print("   User Email: ${userEmail ?? 'Not found'}");
+    print("   User Name: $userName");
+    print("   User Email: $userEmail");
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     
     // PROCESS 3: Determine navigation based on local storage data
@@ -163,6 +187,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       print("✅ User authenticated (local_db) → Home");
       Get.offAll(
         () => const HomeView(),
+        binding: HomeBinding(),
         transition: Transition.fadeIn,
         duration: const Duration(milliseconds: 500),
       );
@@ -182,212 +207,143 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _logoController.dispose();
     _textController.dispose();
     _shimmerController.dispose();
+    _stage3Controller.dispose(); // Dispose the added controller
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:AppBar(
-        backgroundColor:AppColors.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundColor,
       ),
       backgroundColor: AppColors.backgroundColor,
       body: Stack(
         children: [
-
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-              // Premium Animated Logo
+                // Premium Animated Logo
                 SvgPicture.asset(
                   AppImages.logo,
                   width: 120,
                   height: 120,
                 ),
 
-              const SizedBox(height: 40),
+                const SizedBox(height: 40),
 
-              // App Name with Premium Animation
-              // AnimatedBuilder(
-              //   animation: _textController,
-              //   builder: (context, child) {
-              //     return Transform.translate(
-              //       offset: Offset(0, _textSlideAnimation.value),
-              //       child: FadeTransition(
-              //         opacity: _textFadeAnimation,
-              //         child: Stack(
-              //           children: [
-              //             // Shimmer effect overlay
-              //             AnimatedBuilder(
-              //               animation: _shimmerController,
-              //               builder: (context, child) {
-              //                 return ShaderMask(
-              //                   blendMode: BlendMode.srcATop,
-              //                   shaderCallback: (bounds) {
-              //                     return LinearGradient(
-              //                       begin: Alignment.topLeft,
-              //                       end: Alignment.bottomRight,
-              //                       colors: [
-              //                         Colors.white.withValues(alpha: 0.0),
-              //                         Colors.white.withValues(alpha: 0.3),
-              //                         Colors.white.withValues(alpha: 0.0),
-              //                       ],
-              //                       stops: const [0.0, 0.5, 1.0],
-              //                       transform: GradientRotation(_shimmerAnimation.value),
-              //                     ).createShader(bounds);
-              //                   },
-              //                   child: RichText(
-              //                     text: TextSpan(
-              //                       children: [
-              //                         TextSpan(
-              //                           text: 'ME',
-              //                           style: TextStyle(
-              //                             fontSize: 42,
-              //                             fontWeight: FontWeight.bold,
-              //                             fontFamily: 'Montserrat',
-              //                             color: AppColors.whiteColor,
-              //                             fontStyle: FontStyle.italic,
-              //                             letterSpacing: 2,
-              //                           ),
-              //                         ),
-              //                         TextSpan(
-              //                           text: 'GO',
-              //                           style: TextStyle(
-              //                             fontSize: 42,
-              //                             fontWeight: FontWeight.bold,
-              //                             fontFamily: 'Montserrat',
-              //                             color: AppColors.buttonColor,
-              //                             fontStyle: FontStyle.italic,
-              //                             letterSpacing: 2,
-              //                           ),
-              //                         ),
-              //                       ],
-              //                     ),
-              //                   ),
-              //                 );
-              //               },
-              //             ),
-              //             // Base text
-              //             RichText(
-              //               text: TextSpan(
-              //                 children: [
-              //                   TextSpan(
-              //                     text: 'ME',
-              //                     style: TextStyle(
-              //                       fontSize: 42,
-              //                       fontWeight: FontWeight.bold,
-              //                       fontFamily: 'Montserrat',
-              //                       color: AppColors.whiteColor,
-              //                       fontStyle: FontStyle.italic,
-              //                       letterSpacing: 2,
-              //                     ),
-              //                   ),
-              //                   TextSpan(
-              //                     text: 'GO',
-              //                     style: TextStyle(
-              //                       fontSize: 42,
-              //                       fontWeight: FontWeight.bold,
-              //                       fontFamily: 'Montserrat',
-              //                       color: AppColors.buttonColor,
-              //                       fontStyle: FontStyle.italic,
-              //                       letterSpacing: 2,
-              //                     ),
-              //                   ),
-              //                 ],
-              //               ),
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     );
-              //   },
-              // ),
-              //
-              // const SizedBox(height: 12),
-
-              // Tagline with Delayed Fade
-              AnimatedBuilder(
-                animation: _textController,
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _taglineFadeAnimation,
-                    child: Text(
-                      "More than a ride it's MEGo",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'Roboto',
-                        color: AppColors.primaryColor,
-                       fontWeight:FontWeight.w700
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 60),
-
-              // Loading Widget with Fade
-              AnimatedBuilder(
-                animation: _textController,
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _taglineFadeAnimation,
-                    child: LoadingWidget(),
-                  );
-                },
-              ),
-
-              // Animated Welcome Text
-              Padding(
-                padding: const EdgeInsets.only(top: 101),
-                child: AnimatedBuilder(
+                // Tagline with Delayed Fade
+                AnimatedBuilder(
                   animation: _textController,
                   builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, _textSlideAnimation.value * 1.5),
-                      child: FadeTransition(
-                        opacity: _taglineFadeAnimation,
-                        child: TweenAnimationBuilder<double>(
-                          duration: const Duration(milliseconds: 800),
-                          tween: Tween<double>(begin: 0.0, end: 1.0),
-                          curve: Curves.easeInOut,
-                          builder: (context, value, child) {
-                            return Opacity(
-                              opacity: value,
-                              child: Transform.scale(
-                                scale: 0.8 + (0.2 * value),
-                                child: Text(
-                                  "Welcome",
-                                  style: TextStyle(
-                                    color: AppColors.primaryColor,
-                                    fontSize: 25,
-                                    fontFamily: 'Montserrat',
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FontStyle.italic,
-                                    letterSpacing: 1.5,
-                                    shadows: [
-                                      Shadow(
-                                        color: AppColors.primaryColor.withValues(alpha: 0.3),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                    return FadeTransition(
+                      opacity: _taglineFadeAnimation,
+                      child: Text(
+                        "More than a ride it's MEGo",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'Roboto',
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     );
                   },
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 60),
+
+                // Loading Widget with Fade
+                AnimatedBuilder(
+                  animation: _textController,
+                  builder: (context, child) {
+                    return FadeTransition(
+                      opacity: _taglineFadeAnimation,
+                      child: LoadingWidget(),
+                    );
+                  },
+                ),
+
+                // Animated Welcome Text
+                Padding(
+                  padding: const EdgeInsets.only(top: 101),
+                  child: AnimatedBuilder(
+                    animation: _textController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _textSlideAnimation.value * 1.5),
+                        child: FadeTransition(
+                          opacity: _taglineFadeAnimation,
+                          child: TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 800),
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            curve: Curves.easeInOut,
+                            builder: (context, value, child) {
+                              return Opacity(
+                                opacity: value,
+                                child: Transform.scale(
+                                  scale: 0.8 + (0.2 * value),
+                                  child: AnimatedBuilder(
+                                    animation: _stage3Controller,
+                                    builder: (context, child) {
+                                      return Center(
+                                        child: FadeTransition(
+                                          opacity: _welcomeFadeAnimation,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              // "Welc" text
+                                              Text(
+                                                'Welc',
+                                                style: TextStyle(
+                                                  fontSize: 48,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Montserrat',
+                                                  color: AppColors.primaryColor,
+                                                  letterSpacing: 1.5,
+                                                ),
+                                              ),
+                                              // Small star2.svg replacing "o"
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                                child: SvgPicture.asset(
+                                                  AppImages.star2,
+                                                  height: 40,
+                                                  width: 40,
+                                                ),
+                                              ),
+                                              // "me" text
+                                              Text(
+                                                'me',
+                                                style: TextStyle(
+                                                  fontSize: 48,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Montserrat',
+                                                  color: AppColors.primaryColor,
+                                                  letterSpacing: 1.5,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
         ],
       ),
     );

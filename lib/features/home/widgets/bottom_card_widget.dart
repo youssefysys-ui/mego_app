@@ -3,12 +3,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../core/res/app_colors.dart';
 import '../../../core/res/app_images.dart';
+import '../../search_places & calculation/bindings/search_places_binding.dart';
 import '../../search_places & calculation/controllers/search_places_controller.dart';
 import '../../search_places & calculation/search_places_view.dart';
 
 class BottomCardWidget extends StatefulWidget {
-  final List<String>lastUserDropOffLocation;
-  const BottomCardWidget({super.key,required this.lastUserDropOffLocation});
+  final List<String> lastUserDropOffLocation;
+  const BottomCardWidget({super.key, required this.lastUserDropOffLocation});
 
   @override
   State<BottomCardWidget> createState() => _BottomCardWidgetState();
@@ -75,14 +76,12 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                         children: [
                           _buildRideOption(
                             imagePath: AppImages.car,
-
                             isSelected: selectedService == 'Ride',
                             onTap: () => toggleService('Ride'),
                           ),
                           const SizedBox(width: 8),
                           _buildRideOption(
                             imagePath: AppImages.food,
-
                             isSelected: selectedService == 'Food',
                             onTap: () => toggleService('Food'),
                           ),
@@ -94,7 +93,9 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
 
                     // Search Bar
                     GestureDetector(
-                      onTap: () => Get.to(() => const SearchPlacesView(),
+                      onTap: () => Get.to(
+                        () => const SearchPlacesView(),
+                        binding: SearchPlacesBinding(),
                         transition: Transition.leftToRightWithFade,
                         duration: const Duration(milliseconds: 500),
                       ),
@@ -138,8 +139,8 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                     _buildLocationItem(
                       Icons.location_on,
                       selectedService == 'Ride'
-                          ? (widget.lastUserDropOffLocation.isNotEmpty 
-                              ? widget.lastUserDropOffLocation[0] 
+                          ? (widget.lastUserDropOffLocation.isNotEmpty
+                              ? widget.lastUserDropOffLocation[0]
                               : "Coffee house")
                           : "Coffee house",
                       // 'Coffee house'
@@ -149,12 +150,12 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                     _buildLocationItem(
                       Icons.location_on,
                       selectedService == 'Ride'
-                          ? (widget.lastUserDropOffLocation.length > 1 
-                              ? widget.lastUserDropOffLocation[1] 
+                          ? (widget.lastUserDropOffLocation.length > 1
+                              ? widget.lastUserDropOffLocation[1]
                               : "Inn Hotel")
                           : "Inn Hotel",
                       //'Inn Hotel'
-                        //  : 'Burger Place',
+                      //  : 'Burger Place',
                     ),
 
                     const SizedBox(height: 20),
@@ -218,10 +219,7 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                 imagePath,
                 width: 20,
                 height: 20,
-
-                color:
-                  isSelected ? Colors.white : AppColors.primaryColor,
-
+                color: isSelected ? Colors.white : AppColors.primaryColor,
               )
             else if (icon != null)
               Icon(
@@ -230,7 +228,6 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                 size: 20,
               ),
             const SizedBox(width: 6),
-
           ],
         ),
       ),
@@ -245,24 +242,25 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
           // Navigate to SearchPlacesView
           Get.to(
             () => const SearchPlacesView(),
+            binding: SearchPlacesBinding(),
             transition: Transition.leftToRightWithFade,
             duration: const Duration(milliseconds: 500),
           );
-          
+
           // Get the controller and search for the location to get full details
           final controller = Get.find<SearchPlacesController>();
           controller.toController.text = title;
           controller.isFromField = false;
-          
+
           // Search for the place to get coordinates
           await controller.searchPlaces(title);
-          
+
           controller.update();
         }
       },
       child: Row(
         children: [
-         SvgPicture.asset(AppImages.locationIcon),
+          SvgPicture.asset(AppImages.locationIcon),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -344,7 +342,9 @@ class _BottomCardWidgetState extends State<BottomCardWidget> {
                   children: [
                     InkWell(
                       onTap: () {
-                        Get.to(() => const SearchPlacesView(),
+                        Get.to(
+                          () => const SearchPlacesView(),
+                          binding: SearchPlacesBinding(),
                           transition: Transition.leftToRightWithFade,
                           duration: const Duration(milliseconds: 500),
                         );

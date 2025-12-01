@@ -4,9 +4,9 @@ class AppImages {
 
   // Base path for images
   static const String _imagePath = 'assets/images/';
-
   // SVG Images
   static const String apple = '${_imagePath}apple.svg';
+  static const String splash1 = '${_imagePath}sp1.svg';
   static const String car = '${_imagePath}car.svg';
   static const String drIcon = '${_imagePath}dr.svg';
   static const String food = '${_imagePath}food.svg';
@@ -18,17 +18,19 @@ class AppImages {
   static const String whiteLogo2 = '${_imagePath}whiteLogo2.svg';
   static const String redCar = '${_imagePath}red_car.svg';
   static const String safety = '${_imagePath}safety.svg';
-   static const String search = '${_imagePath}search_icon.svg';
+  static const String search = '${_imagePath}search_icon.svg';
   static const String welcome = '${_imagePath}welcome.svg';
   static const String xIcon = '${_imagePath}xIcon.svg';
   static const String yellowLocation = '${_imagePath}yellow_location.svg';
-  static const String paymentMethodIcon = '${_imagePath}payment_method_icon.svg';
+  static const String paymentMethodIcon =
+      '${_imagePath}payment_method_icon.svg';
   static const String cashIcon = '${_imagePath}cash.svg';
   static const String cardIcon = '${_imagePath}card.svg';
 
   // Additional SVG Images
   static const String bmwTest = '${_imagePath}bmw_test.svg';
   static const String star = '${_imagePath}star.svg';
+  static const String star2 = '${_imagePath}star2.svg';
   static const String megoStyleImage = '${_imagePath}z.svg';
 
   // PNG Images (keeping only those without SVG versions)
@@ -49,12 +51,12 @@ class AppImages {
   static const String walletIcon = 'assets/images/wallet.svg';
   static const String aboutIcon = 'assets/images/about.svg';
   static const String couponsIcon = 'assets/images/coupons.svg';
-  static const String customerSupportIcon = 'assets/images/customer_support.svg';
+  static const String customerSupportIcon =
+      'assets/images/customer_support.svg';
   static const String splashVideo = 'assets/images/v1.mp4';
-      //'assets/images/splash_video.mp4';
+  //'assets/images/splash_video.mp4';
   static const String nameIcon = 'assets/images/name.svg';
   static const String emailIcon = 'assets/images/mail.svg';
-
 
   // Legacy compatibility (deprecated - use specific SVG versions above)
   // @Deprecated('Use AppImages.logo instead')
